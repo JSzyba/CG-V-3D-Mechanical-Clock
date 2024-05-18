@@ -1,0 +1,16 @@
+﻿  lodepng.cpp
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\lodepng.cpp(762,10): warning C4334: "<<": wynik 32-bitowe przesunięcia niejawnie skonwertowano do 64 bitów (czy 64-bitowe przesunięcie było zamierzone?)
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\lodepng.cpp(1422,25): warning C4267: "=": konwersja z "size_t" do "int", możliwa utrata danych
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\lodepng.cpp(1426,27): warning C4267: "=": konwersja z "size_t" do "int", możliwa utrata danych
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\lodepng.cpp(1498,32): warning C4267: "=": konwersja z "size_t" do "unsigned int", możliwa utrata danych
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\lodepng.cpp(3441,25): warning C4334: "<<": wynik 32-bitowe przesunięcia niejawnie skonwertowano do 64 bitów (czy 64-bitowe przesunięcie było zamierzone?)
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\lodepng.cpp(3455,53): warning C4267: "argument": konwersja z "size_t" do "unsigned int", możliwa utrata danych
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\lodepng.cpp(4262,26): warning C4267: "=": konwersja z "size_t" do "unsigned int", możliwa utrata danych
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\lodepng.cpp(4310,26): warning C4267: "=": konwersja z "size_t" do "unsigned int", możliwa utrata danych
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\lodepng.cpp(4390,26): warning C4267: "=": konwersja z "size_t" do "unsigned int", możliwa utrata danych
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\lodepng.cpp(5329,27): warning C4267: "inicjowanie": konwersja z "size_t" do "unsigned int", możliwa utrata danych
+  shaderprogram.cpp
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\shaderprogram.cpp(35,15): warning C4267: "inicjowanie": konwersja z "size_t" do "int", możliwa utrata danych
+  Generowanie kodu...
+  main_file.cpp
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\main_file.cpp(32,10): error C1083: Nie można otworzyć pliku dołącz: 'assimp/Importer.hpp': No such file or directory
