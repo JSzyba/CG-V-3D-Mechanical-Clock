@@ -13,4 +13,7 @@ C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanica
 C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\shaderprogram.cpp(35,15): warning C4267: "inicjowanie": konwersja z "size_t" do "int", możliwa utrata danych
   Generowanie kodu...
   main_file.cpp
-C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\main_file.cpp(32,10): error C1083: Nie można otworzyć pliku dołącz: 'assimp/Importer.hpp': No such file or directory
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\main_file.cpp(212,25): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\main_file.cpp(213,19): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+glew32s.lib(glew.obj) : warning LNK4099: nie znaleziono pliku PDB „” z elementem „glew32s.lib(glew.obj)” lub w pozycji „”; obiekt zostanie skonsolidowany bez informacji debugowania
+  Mechanical Clock.vcxproj -> C:\Users\barte_4a6xoqp\Desktop\Studia\Aktualny semestr\Grafika projekt\Mechanical clock\MechanicalClockRepo\CG-V-3D-Mechanical-Clock\x64\Debug\Mechanical Clock.exe
