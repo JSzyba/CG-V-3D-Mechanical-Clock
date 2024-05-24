@@ -15,7 +15,6 @@ out vec4 l;
 out vec4 n;
 out vec4 v;
 out vec2 iTexCoord0;
-out vec2 iTexCoord1;
 
 void main(void) {
     vec4 lp = vec4(0, 0, -6, 1); //light position, world space
@@ -24,7 +23,6 @@ void main(void) {
     n = normalize(V * M * normal); //normal vector in eye space
 
     iTexCoord0 = texCoord0;
-    iTexCoord1 = (n.xy + 1) / 2;
 
     gl_Position = P * V * M * vertex;
 }

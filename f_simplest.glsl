@@ -10,7 +10,6 @@ in vec4 n;
 in vec4 l;
 in vec4 v;
 in vec2 iTexCoord0;
-in vec2 iTexCoord1;
 
 void main(void) {
 	//Normalized, interpolated vectors
@@ -21,8 +20,8 @@ void main(void) {
 	vec4 mr = reflect(-ml, mn);
 
 	//Surface parameters
-	vec4 kd = mix(texture(textureMap0, iTexCoord0), texture(textureMap1, iTexCoord1),0.3);
-	vec4 ks = vec4(1,1,1,1);
+	vec4 kd = texture(textureMap0, iTexCoord0);
+	vec4 ks = texture(textureMap1, iTexCoord0);
 
 	//Lighting model computation
 	float nl = clamp(dot(mn, ml), 0, 1);

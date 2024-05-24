@@ -1,9 +1,11 @@
 ﻿  main_file.cpp
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(220,12): warning C4477: „printf”: ciąg formatu „%d” wymaga argumentu typu „int”, ale argument 1 ze zmienną liczbą argumentów ma typ „unsigned __int64”
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(220,12): message : rozważ użycie elementu „%zd” w ciągu formatu
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(221,12): warning C4477: „printf”: ciąg formatu „%d” wymaga argumentu typu „int”, ale argument 1 ze zmienną liczbą argumentów ma typ „unsigned __int64”
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(221,12): message : rozważ użycie elementu „%zd” w ciągu formatu
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(271,46): warning C4267: "argument": konwersja z "size_t" do "GLsizei", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(321,25): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(322,19): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(209,12): warning C4477: „printf”: ciąg formatu „%d” wymaga argumentu typu „int”, ale argument 1 ze zmienną liczbą argumentów ma typ „unsigned __int64”
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(209,12): message : rozważ użycie elementu „%zd” w ciągu formatu
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(210,12): warning C4477: „printf”: ciąg formatu „%d” wymaga argumentu typu „int”, ale argument 1 ze zmienną liczbą argumentów ma typ „unsigned __int64”
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(210,12): message : rozważ użycie elementu „%zd” w ciągu formatu
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(258,55): warning C4267: "argument": konwersja z "size_t" do "GLsizei", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(311,25): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(312,19): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(313,38): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(314,38): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
   Mechanical Clock.vcxproj -> C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\x64\Debug\Mechanical Clock.exe
