@@ -33,6 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+typedef unsigned int  GLuint;   /* 4-byte unsigned */
+
 float speed_x=0; //angular speed in radians
 float speed_y=0; //angular speed in radians
 float aspectRatio=1;
@@ -56,6 +58,127 @@ int vertexCount = myTeapotVertexCount;
 GLuint tex0;
 GLuint tex1;
 
+<<<<<<< Updated upstream
+=======
+struct Vertex {
+	std::vector<glm::vec4> position;
+	std::vector<glm::vec4> normal;
+	std::vector<glm::vec2> texCoords;
+};
+
+struct Texture {
+	unsigned int id;
+	aiString type;
+	GLuint tex;
+};
+
+struct Mesh {
+	Vertex vertex;
+	std::vector<unsigned int> indices;
+
+	std::vector<glm::vec4>verts;
+	std::vector<glm::vec4>norms;
+	std::vector<glm::vec2>teks;
+	//Texture tex;
+	aiString TexType;
+	GLuint tex;
+};
+
+std::vector<Mesh> meshVec;
+std::vector<Texture> texVec;
+std::vector<GLuint> texGluints;
+
+GLuint readTexture(const char* filename);
+
+void processMesh(aiMesh* mesh, const aiScene* scene, Mesh *givenMesh) {
+	for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+		givenMesh->vertex.position.push_back(glm::vec4(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1));
+		givenMesh->vertex.normal.push_back(glm::vec4(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z, 0));
+		if (mesh->mTextureCoords[0]) {
+			givenMesh->vertex.texCoords.push_back(glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y));
+		}
+		else {
+			givenMesh->vertex.texCoords.push_back(glm::vec2(0.0f, 0.0f));
+		}
+		
+	}
+
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+		aiFace face = mesh->mFaces[i];
+		for (unsigned int j = 0; j < face.mNumIndices; j++) {
+			givenMesh->indices.push_back(face.mIndices[j]);
+		}
+	}
+
+	aiReturn ret;//Code which says whether loading something has been successful of not
+	aiString textureName;//Filename of the texture using the aiString assimp structure
+	ret = scene->mMaterials[mesh->mMaterialIndex]->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), textureName);
+	for (int i = 0; i < texVec.size(); i++) {
+		if (texVec[i].type == textureName) {
+			givenMesh->tex = texVec[i].tex;
+			break;
+		}
+	}
+	givenMesh->TexType = textureName;
+}
+
+void processNode(aiNode* node, const aiScene* scene, std::vector<Mesh> &meshes) {
+	if (scene->HasMaterials())//True when number of materials is greater than 0
+	{
+		for (unsigned int m = 0; m < scene->mNumMaterials; ++m)
+		{
+			aiMaterial* material = scene->mMaterials[m];//Get the current material
+			aiString materialName;//The name of the material found in mesh file
+			aiReturn ret;//Code which says whether loading something has been successful of not
+
+			ret = material->Get(AI_MATKEY_NAME, materialName);//Get the material name (pass by reference)
+			if (ret != AI_SUCCESS) materialName = "";//Failed to find material name so makes var empty
+
+			//Diffuse maps
+			int numTextures = material->GetTextureCount(aiTextureType_DIFFUSE);//Amount of diffuse textures
+			aiString textureName;//Filename of the texture using the aiString assimp structure
+
+			if (numTextures > 0)
+			{
+				//Get the file name of the texture by passing the variable by reference again
+				//Second param is 0, which is the first diffuse texture
+				//There can be more diffuse textures but for now we are only interested in the first one
+				ret = material->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), textureName);
+
+				std::string textureType = "diff_";
+				std::string textureFileName = textureType + textureName.data;//The actual name of the texture file
+
+				Texture newTex;
+				newTex.type = textureName;
+				newTex.tex = readTexture(textureName.C_Str());
+				texVec.push_back(newTex);
+			}
+		}
+	}
+	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		Mesh givenMesh;
+		processMesh(mesh, scene, &givenMesh);
+		meshes.push_back(givenMesh);
+	}
+	for (unsigned int i = 0; i < node->mNumChildren; i++) {
+		processNode(node->mChildren[i], scene, meshes);
+	}
+}
+
+bool loadModel(const std::string& path, std::vector<Mesh> &meshes) {
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+		return false;
+	}
+	processNode(scene->mRootNode, scene, meshes);
+	return true;
+}
+
+
+>>>>>>> Stashed changes
 //Error processing callback procedure
 void error_callback(int error, const char* description) {
 	fputs(description, stderr);
@@ -115,6 +238,16 @@ void initOpenGLProgram(GLFWwindow* window) {
 	sp=new ShaderProgram("v_simplest.glsl",NULL,"f_simplest.glsl");
 	tex0 = readTexture("metal.png");
 	tex1 = readTexture("sky.png");
+<<<<<<< Updated upstream
+=======
+    std::string modelPath = "Models/OteksturowanyZegar2.obj";
+    if (!loadModel(modelPath, meshVec)) {
+        fprintf(stderr, "Failed to load model!\n");
+        exit(EXIT_FAILURE);
+    }
+    printf("Vertices: %d\n", meshVec[0].verts.size());
+    printf("Indices: %d\n", meshVec[0].teks.size());
+>>>>>>> Stashed changes
 }
 
 //Release resources allocated by the program
@@ -157,6 +290,7 @@ void drawScene(GLFWwindow* window,float angle_x,float angle_y) {
 
 	glUniform1i(sp->u("textureMap0"), 0); // Associate sampler textureMap0 with the 0-th texturing unit
 	glActiveTexture(GL_TEXTURE0); //Assign texture tex0 to the 0-th texturing unit
+<<<<<<< Updated upstream
 	glBindTexture(GL_TEXTURE_2D, tex0);
 
 	glUniform1i(sp->u("textureMap1"), 1); // Associate sampler textureMap1 with the 1-st texturing unit
@@ -164,6 +298,35 @@ void drawScene(GLFWwindow* window,float angle_x,float angle_y) {
 	glBindTexture(GL_TEXTURE_2D, tex1);
 
     glDrawArrays(GL_TRIANGLES,0,vertexCount); //Draw the object
+=======
+	//glBindTexture(GL_TEXTURE_2D, tex0);
+	//glUniform1i(sp->u("textureMap1"), 1); // Associate sampler textureMap1 with the 1-st texturing unit
+	//	glActiveTexture(GL_TEXTURE1); //Assign texture tex1 to the 1-st texturing unit
+	//	glBindTexture(GL_TEXTURE_2D, tex1);
+
+	//for (int x = 0; x < texVec.size(); x++) {
+	//	texVec[x].tex = readTexture(texVec[x].type.C_Str());
+
+	//	//glUniform1i(sp->u("textureMap"+x), x); // Associate sampler textureMap0 with the 0-th texturing unit
+	//	//glActiveTexture(GL_TEXTURE0+x); //Assign texture tex0 to the 0-th texturing unit
+	//	//glBindTexture(GL_TEXTURE_2D, texVec[x].tex);
+	//}
+    
+	
+	for (int x = 0; x < 29; x++)
+	{
+		glBindTexture(GL_TEXTURE_2D, meshVec[x].tex);
+		glEnableVertexAttribArray(sp->a("vertex")); //Enable sending data to the attribute vertex
+		glVertexAttribPointer(sp->a("vertex"),4,GL_FLOAT,false,0, meshVec[x].vertex.position.data()); //Specify source of the data for the attribute vertex
+		glEnableVertexAttribArray(sp->a("normal")); //Enable sending data to the attribute color
+		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, meshVec[x].vertex.normal.data()); //Specify source of the data for the attribute normal
+		glEnableVertexAttribArray(sp->a("texCoord0")); //Enable sending data to the attribute texCoord0
+		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, meshVec[x].vertex.texCoords.data()); //Specify source of the data for the attribute texCoord0
+		
+		//glDrawArrays(GL_TRIANGLES,0,vertices.size()); //Draw the object
+		glDrawElements(GL_TRIANGLES, meshVec[x].indices.size(), GL_UNSIGNED_INT, meshVec[x].indices.data());
+	}
+>>>>>>> Stashed changes
 
     glDisableVertexAttribArray(sp->a("vertex")); //Disable sending data to the attribute vertex
 	glDisableVertexAttribArray(sp->a("texCoord0")); //Disable sending data to the attribute texCoord0
