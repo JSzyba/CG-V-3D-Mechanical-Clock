@@ -34,12 +34,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assimp/postprocess.h>
 
 typedef unsigned int  GLuint;   /* 4-byte unsigned */
-
-float speed_x=0; //angular speed in radians
-float speed_y=0; //angular speed in radians
-float aspectRatio=1;
-ShaderProgram *sp; //Pointer to the shader program
-
+float speed_x = 0; //angular speed in radians
+float speed_y = 0; //angular speed in radians
+float movement_x = 0; //angular speed in radians
+float movement_y = 0; //angular speed in radians
+float ws = 0;
+float aspectRatio = 1;
+glm::vec3 pos = glm::vec3(0, 16, -18);
+ShaderProgram* sp; //Pointer to the shader program
 
 //Uncomment to draw a cube
 /*float* vertices=myCubeVertices;
@@ -58,8 +60,6 @@ int vertexCount = myTeapotVertexCount;
 GLuint tex0;
 GLuint tex1;
 
-<<<<<<< Updated upstream
-=======
 struct Vertex {
 	std::vector<glm::vec4> position;
 	std::vector<glm::vec4> normal;
@@ -177,26 +177,37 @@ bool loadModel(const std::string& path, std::vector<Mesh> &meshes) {
 	return true;
 }
 
-
->>>>>>> Stashed changes
 //Error processing callback procedure
 void error_callback(int error, const char* description) {
 	fputs(description, stderr);
 }
 
-void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
-    if (action==GLFW_PRESS) {
-        if (key==GLFW_KEY_LEFT) speed_x=-PI/2;
-        if (key==GLFW_KEY_RIGHT) speed_x=PI/2;
-        if (key==GLFW_KEY_UP) speed_y=PI/2;
-        if (key==GLFW_KEY_DOWN) speed_y=-PI/2;
-    }
-    if (action==GLFW_RELEASE) {
-        if (key==GLFW_KEY_LEFT) speed_x=0;
-        if (key==GLFW_KEY_RIGHT) speed_x=0;
-        if (key==GLFW_KEY_UP) speed_y=0;
-        if (key==GLFW_KEY_DOWN) speed_y=0;
-    }
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (action == GLFW_PRESS) {
+		if (key == GLFW_KEY_LEFT) speed_x = -PI / 2;
+		if (key == GLFW_KEY_RIGHT) speed_x = PI / 2;
+		if (key == GLFW_KEY_UP) speed_y = PI / 2;
+		if (key == GLFW_KEY_DOWN) speed_y = -PI / 2;
+		if (key == GLFW_KEY_S) movement_x = PI / 2;
+		if (key == GLFW_KEY_W) movement_x = -PI / 2;
+		if (key == GLFW_KEY_A) movement_y = PI / 2;
+		if (key == GLFW_KEY_D) movement_y = -PI / 2;
+		if (key == GLFW_KEY_Z) ws = 10;
+		if (key == GLFW_KEY_C) ws = -10;
+		if (key == GLFW_KEY_B) printf("x: %f\ny: %f\nz: %f\n", pos.x, pos.y, pos.z);
+	}
+	if (action == GLFW_RELEASE) {
+		if (key == GLFW_KEY_LEFT) speed_x = 0;
+		if (key == GLFW_KEY_RIGHT) speed_x = 0;
+		if (key == GLFW_KEY_UP) speed_y = 0;
+		if (key == GLFW_KEY_DOWN) speed_y = 0;
+		if (key == GLFW_KEY_W) movement_x = 0;
+		if (key == GLFW_KEY_S) movement_x = 0;
+		if (key == GLFW_KEY_A) movement_y = 0;
+		if (key == GLFW_KEY_D) movement_y = 0;
+		if (key == GLFW_KEY_Z) ws = 0;
+		if (key == GLFW_KEY_C) ws = 0;
+	}
 }
 
 void windowResizeCallback(GLFWwindow* window,int width,int height) {
@@ -231,108 +242,74 @@ GLuint readTexture(const char* filename) {
 //Initialization code procedure
 void initOpenGLProgram(GLFWwindow* window) {
 	//************Place any code here that needs to be executed once, at the program start************
-	glClearColor(0,0,0,1);
+	glClearColor(1, 0.4f, 0.8f, 1);
 	glEnable(GL_DEPTH_TEST);
-	glfwSetWindowSizeCallback(window,windowResizeCallback);
-	glfwSetKeyCallback(window,keyCallback);
-	sp=new ShaderProgram("v_simplest.glsl",NULL,"f_simplest.glsl");
+	glfwSetWindowSizeCallback(window, windowResizeCallback);
+	glfwSetKeyCallback(window, keyCallback);
+	sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 	tex0 = readTexture("metal.png");
 	tex1 = readTexture("sky.png");
-<<<<<<< Updated upstream
-=======
-    std::string modelPath = "Models/OteksturowanyZegar2.obj";
-    if (!loadModel(modelPath, meshVec)) {
-        fprintf(stderr, "Failed to load model!\n");
-        exit(EXIT_FAILURE);
-    }
-    printf("Vertices: %d\n", meshVec[0].verts.size());
-    printf("Indices: %d\n", meshVec[0].teks.size());
->>>>>>> Stashed changes
+	std::string modelPath = "Models/OteksturowanyZegar2.obj";
+	if (!loadModel(modelPath, meshVec)) {
+		fprintf(stderr, "Failed to load model!\n");
+		exit(EXIT_FAILURE);
+	}
+	//printf("Vertices: %d\n", meshVec[0].verts.size());
+	//printf("Indices: %d\n", meshVec[0].teks.size());
 }
 
 //Release resources allocated by the program
 void freeOpenGLProgram(GLFWwindow* window) {
 	//************Place any code here that needs to be executed once, after the main loop ends************
 	delete sp;
+	for (int i = 0; i < texVec.size(); i++) {
+		glDeleteTextures(1, &texVec[i].tex);
+	}
 }
+glm::vec3 dir = glm::vec3(0, 0, 1);
 
 //Drawing procedure
-void drawScene(GLFWwindow* window,float angle_x,float angle_y) {
+void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	//************Place any code here that draws something inside the window******************l
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glm::mat4 V = glm::lookAt(
+		pos,
+		pos + dir,
+		glm::vec3(0.0f, 1.0f, 0.0f)); //compute view matrix
+	glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 1.0f, 500.0f); //compute projection matrix
 
-	glm::mat4 V=glm::lookAt(
-        glm::vec3(0.0f,0.0f,-3.0f),
-        glm::vec3(0.0f,0.0f,0.0f),
-        glm::vec3(0.0f,1.0f,0.0f)); //compute view matrix
-    glm::mat4 P=glm::perspective(50.0f*PI/180.0f, aspectRatio, 1.0f, 50.0f); //compute projection matrix
+	sp->use();//activate shading program
+	//Send parameters to graphics card
+	glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
+	glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 
-    sp->use();//activate shading program
-    //Send parameters to graphics card
-    glUniformMatrix4fv(sp->u("P"),1,false,glm::value_ptr(P));
-    glUniformMatrix4fv(sp->u("V"),1,false,glm::value_ptr(V));
-
-    glm::mat4 M=glm::mat4(1.0f);
-	M=glm::rotate(M,angle_y,glm::vec3(1.0f,0.0f,0.0f)); //Compute model matrix
-	M=glm::rotate(M,angle_x,glm::vec3(0.0f,1.0f,0.0f)); //Compute model matrix
-    glUniformMatrix4fv(sp->u("M"),1,false,glm::value_ptr(M));
-
-
-    glEnableVertexAttribArray(sp->a("vertex")); //Enable sending data to the attribute vertex
-    glVertexAttribPointer(sp->a("vertex"),4,GL_FLOAT,false,0,vertices); //Specify source of the data for the attribute vertex
-
-	glEnableVertexAttribArray(sp->a("texCoord0")); //Enable sending data to the attribute texCoord0
-	glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, texCoords); //Specify source of the data for the attribute texCoord0
-
-	glEnableVertexAttribArray(sp->a("normal")); //Enable sending data to the attribute color
-	glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, normals); //Specify source of the data for the attribute normal
+	glm::mat4 M = glm::mat4(1.0f);
+	M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f)); //Compute model matrix
+	M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); //Compute model matrix
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
 	glUniform1i(sp->u("textureMap0"), 0); // Associate sampler textureMap0 with the 0-th texturing unit
 	glActiveTexture(GL_TEXTURE0); //Assign texture tex0 to the 0-th texturing unit
-<<<<<<< Updated upstream
-	glBindTexture(GL_TEXTURE_2D, tex0);
 
-	glUniform1i(sp->u("textureMap1"), 1); // Associate sampler textureMap1 with the 1-st texturing unit
-	glActiveTexture(GL_TEXTURE1); //Assign texture tex1 to the 1-st texturing unit
-	glBindTexture(GL_TEXTURE_2D, tex1);
-
-    glDrawArrays(GL_TRIANGLES,0,vertexCount); //Draw the object
-=======
-	//glBindTexture(GL_TEXTURE_2D, tex0);
-	//glUniform1i(sp->u("textureMap1"), 1); // Associate sampler textureMap1 with the 1-st texturing unit
-	//	glActiveTexture(GL_TEXTURE1); //Assign texture tex1 to the 1-st texturing unit
-	//	glBindTexture(GL_TEXTURE_2D, tex1);
-
-	//for (int x = 0; x < texVec.size(); x++) {
-	//	texVec[x].tex = readTexture(texVec[x].type.C_Str());
-
-	//	//glUniform1i(sp->u("textureMap"+x), x); // Associate sampler textureMap0 with the 0-th texturing unit
-	//	//glActiveTexture(GL_TEXTURE0+x); //Assign texture tex0 to the 0-th texturing unit
-	//	//glBindTexture(GL_TEXTURE_2D, texVec[x].tex);
-	//}
-    
-	
 	for (int x = 0; x < 29; x++)
 	{
 		glBindTexture(GL_TEXTURE_2D, meshVec[x].tex);
 		glEnableVertexAttribArray(sp->a("vertex")); //Enable sending data to the attribute vertex
-		glVertexAttribPointer(sp->a("vertex"),4,GL_FLOAT,false,0, meshVec[x].vertex.position.data()); //Specify source of the data for the attribute vertex
+		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, meshVec[x].vertex.position.data()); //Specify source of the data for the attribute vertex
 		glEnableVertexAttribArray(sp->a("normal")); //Enable sending data to the attribute color
 		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, meshVec[x].vertex.normal.data()); //Specify source of the data for the attribute normal
 		glEnableVertexAttribArray(sp->a("texCoord0")); //Enable sending data to the attribute texCoord0
 		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, meshVec[x].vertex.texCoords.data()); //Specify source of the data for the attribute texCoord0
-		
+
 		//glDrawArrays(GL_TRIANGLES,0,vertices.size()); //Draw the object
 		glDrawElements(GL_TRIANGLES, meshVec[x].indices.size(), GL_UNSIGNED_INT, meshVec[x].indices.data());
 	}
->>>>>>> Stashed changes
 
-    glDisableVertexAttribArray(sp->a("vertex")); //Disable sending data to the attribute vertex
+	glDisableVertexAttribArray(sp->a("vertex")); //Disable sending data to the attribute vertex
 	glDisableVertexAttribArray(sp->a("texCoord0")); //Disable sending data to the attribute texCoord0
 	glDisableVertexAttribArray(sp->a("normal")); //Disable sending data to the attribute normal
 
-    glfwSwapBuffers(window); //Copy back buffer to front buffer
+	glfwSwapBuffers(window); //Copy back buffer to front buffer
 }
 
 int main(void)
@@ -368,12 +345,24 @@ int main(void)
 
 	float angle_x=0; //current rotation angle of the object, x axis
 	float angle_y=0; //current rotation angle of the object, y axis
+	float player_speed_x = 0;
+	float player_speed_y = 0;
 	glfwSetTime(0); //Zero the timer
 	//Main application loop
 	while (!glfwWindowShouldClose(window)) //As long as the window shouldnt be closed yet...
 	{
         angle_x+=speed_x*glfwGetTime(); //Add angle by which the object was rotated in the previous iteration
 		angle_y+=speed_y*glfwGetTime(); //Add angle by which the object was rotated in the previous iteration
+		player_speed_x += movement_x * glfwGetTime();
+		player_speed_y += movement_y * glfwGetTime();
+		glm::mat4 Mc = glm::rotate(glm::mat4(1.0f), player_speed_y, glm::vec3(0, 1, 0));
+		Mc = glm::rotate(Mc, player_speed_x, glm::vec3(1, 0, 0));
+		glm::vec4 dir_ = Mc * glm::vec4(0, 0, 1, 0);
+		dir = glm::vec3(dir_);
+
+		glm::vec3 mdir = glm::normalize(glm::vec3(dir.x, dir.y, dir.z));
+
+		pos += ws * (float)glfwGetTime() * mdir;
         glfwSetTime(0); //Zero the timer
 		drawScene(window,angle_x,angle_y); //Execute drawing procedure
 		glfwPollEvents(); //Process callback procedures corresponding to the events that took place up to now
