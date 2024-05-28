@@ -26,6 +26,6 @@ void main(void) {
 
 	//Lighting model computation
 	float nl = clamp(dot(mn, ml), 0, 1);
-	float rv = pow(clamp(dot(mr, mv), 0, 1), 50);
+	float rv = pow(clamp(dot(mr, mv), 0, 1), 5000);
 	pixelColor = vec4(kd.rgb * nl, kd.a) + vec4(ks.rgb * rv, 0);
 }

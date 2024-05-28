@@ -9,7 +9,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd C:/Users/barte_4a6xoqp/Downloads/metal_16-G9C-1K/metal_16-1K/metal_16_basecolor-1K.png
+map_Kd C:/Users/barte_4a6xoqp/Downloads/beige_wall_001_1k/textures/metal_16_basecolor-1K.png
 
 newmtl PM002
 Ns 250.000000
@@ -19,7 +19,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd C:/Users/barte_4a6xoqp/Downloads/metal_16-G9C-1K/metal_16-1K/metal_16_basecolor-1K.png
+map_Kd C:/Users/barte_4a6xoqp/Downloads/beige_wall_001_1k/textures/metal_16_basecolor-1K.png
 
 newmtl glass
 Ns 250.000000
@@ -39,7 +39,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd C:/Users/barte_4a6xoqp/Downloads/wood_table_001_1k/textures/wood_table_001_diff_1k.png
+map_Kd C:/Users/barte_4a6xoqp/Downloads/beige_wall_001_1k/textures/wood_table_001_diff_1k.png
 
 newmtl wood
 Ns 250.000000
@@ -49,4 +49,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd C:/Users/barte_4a6xoqp/Downloads/rosewood_veneer1_1k/textures/rosewood_veneer1_diff_1k.png
+map_Kd C:/Users/barte_4a6xoqp/Downloads/beige_wall_001_1k/textures/rosewood_veneer1_diff_1k.png

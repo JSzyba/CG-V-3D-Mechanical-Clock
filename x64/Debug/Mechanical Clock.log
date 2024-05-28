@@ -1,0 +1,7 @@
+﻿  main_file.cpp
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(368,55): warning C4267: "argument": konwersja z "size_t" do "GLsizei", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(417,25): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(418,19): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(419,32): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(420,32): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+  Mechanical Clock.vcxproj -> C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\x64\Debug\Mechanical Clock.exe
