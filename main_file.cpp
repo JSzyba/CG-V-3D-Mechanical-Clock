@@ -13,8 +13,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #define GLM_FORCE_RADIANS
+#define MODEL_PATH "Models/OteksturowanyZegar2.obj"
+#define START_POS glm::vec3(0, 11, -25)
+#define GEAR_POS glm::vec3(0, 15.5, -8)
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -23,201 +25,65 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdlib.h>
 #include <stdio.h>
+#include <vector>
 #include "constants.h"
 #include "lodepng.h"
 #include "shaderprogram.h"
-#include "myCube.h"
-#include "myTeapot.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <vector>
 
 typedef unsigned int  GLuint;   /* 4-byte unsigned */
-float speed_x = 0; //angular speed in radians
-float speed_y = 0; //angular speed in radians
-float movement_x = 0; //angular speed in radians
-float movement_y = 0; //angular speed in radians
-float ws = 0;
-float aspectRatio = 1;
-bool ifCaseVisible = true;
-glm::vec3 pos = glm::vec3(-1, 13, -30);
-ShaderProgram* sp; //Pointer to the shader program
 
-//Uncomment to draw a cube
-/*float* vertices=myCubeVertices;
-float* texCoords= myCubeTexCoords;
-float* colors = myCubeColors;
-float* normals = myCubeNormals;
-int vertexCount = myCubeVertexCount;*/
-
-//Uncomment to draw a teapot
-float* vertices = myTeapotVertices;
-float* texCoords = myTeapotTexCoords;
-float* colors = myTeapotColors;
-float* normals = myTeapotVertexNormals;
-int vertexCount = myTeapotVertexCount;
-
-GLuint tex0;
-GLuint tex1;
-
+// struct containing all attributes of vertices
 struct Vertex {
 	std::vector<glm::vec4> position;
 	std::vector<glm::vec4> normal;
 	std::vector<glm::vec2> texCoords;
 };
 
+// struct containg all important information about texture
 struct Texture {
-	unsigned int id;
 	aiString type;
 	GLuint tex;
 };
 
+// struct containing all important information about mesh
 struct Mesh {
 	Vertex vertex;
 	std::vector<unsigned int> indices;
 
-	
-	//Texture tex;
-	aiString TexType;
-	GLuint tex;
+	Texture* tex;
+	//aiString TexType;
+	//GLuint* tex;
 };
 
-std::vector<Mesh> meshVec; //important
-std::vector<Texture> texVec;
-std::vector<GLuint> texGluints;
-std::vector<glm::vec3> rotationCenters(29); //rotation centers of rotatable objects (glm::vec3(0,0,0) if not rotatable)
 
+float aspectRatio;	// width to height ratio of window
 
-GLuint readTexture(const char* filename);
+float speed_x;		// angular speed in radians of model
+float speed_y;		// angular speed in radians of model
+float movement_x;	// angular speed in radians of camera
+float movement_y;	// angular speed in radians of camera
+float ws;			// speed of camera
 
-void processMesh(aiMesh* mesh, const aiScene* scene, Mesh *givenMesh) {
-	for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-		givenMesh->vertex.position.push_back(glm::vec4(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1));
-		givenMesh->vertex.normal.push_back(glm::vec4(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z, 0));
-		if (mesh->mTextureCoords[0]) {
-			givenMesh->vertex.texCoords.push_back(glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y));
-		}
-		else {
-			givenMesh->vertex.texCoords.push_back(glm::vec2(0.0f, 0.0f));
-		}
-		
-	}
+float gearAngle;	// rotation angle of gears
+double time;		// time elapsed from start of program to current frame
+double oldTime;		// time elapsed from start of program to last frame
 
-	for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
-		aiFace face = mesh->mFaces[i];
-		for (unsigned int j = 0; j < face.mNumIndices; j++) {
-			givenMesh->indices.push_back(face.mIndices[j]);
-		}
-	}
+int meshNumber;		// number of meshes
+bool ifCaseVisible;	// flag describing if case should be visible
 
-	aiReturn ret;//Code which says whether loading something has been successful of not
-	aiString textureName;//Filename of the texture using the aiString assimp structure
-	ret = scene->mMaterials[mesh->mMaterialIndex]->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), textureName);
-	for (int i = 0; i < texVec.size(); i++) {
-		if (texVec[i].type == textureName) {
-			givenMesh->tex = texVec[i].tex;
-			break;
-		}
-	}
-	givenMesh->TexType = textureName;
-}
+ShaderProgram* sp;	// pointer to the shader program
 
-void processNode(aiNode* node, const aiScene* scene, std::vector<Mesh> &meshes) {
-	if (scene->HasMaterials())//True when number of materials is greater than 0
-	{
-		for (unsigned int m = 0; m < scene->mNumMaterials; ++m)
-		{
-			aiMaterial* material = scene->mMaterials[m];//Get the current material
-			aiString materialName;//The name of the material found in mesh file
-			aiReturn ret;//Code which says whether loading something has been successful of not
+std::vector<Mesh> meshVec;					// vector of all meshes
+std::vector<Texture> texVec;				// vector of all textures
+std::vector<glm::vec3> rotationCenters;		// vector of rotation centers of objects
 
-			ret = material->Get(AI_MATKEY_NAME, materialName);//Get the material name (pass by reference)
-			if (ret != AI_SUCCESS) materialName = "";//Failed to find material name so makes var empty
-
-			//Diffuse maps
-			int numTextures = material->GetTextureCount(aiTextureType_DIFFUSE);//Amount of diffuse textures
-			aiString textureName;//Filename of the texture using the aiString assimp structure
-
-			if (numTextures > 0)
-			{
-				//Get the file name of the texture by passing the variable by reference again
-				//Second param is 0, which is the first diffuse texture
-				//There can be more diffuse textures but for now we are only interested in the first one
-				ret = material->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), textureName);
-
-				std::string textureType = "diff_";
-				std::string textureFileName = textureType + textureName.data;//The actual name of the texture file
-
-				Texture newTex;
-				newTex.type = textureName;
-				newTex.tex = readTexture(textureName.C_Str());
-				texVec.push_back(newTex);
-			}
-		}
-	}
-	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		Mesh givenMesh;
-		processMesh(mesh, scene, &givenMesh);
-		meshes.push_back(givenMesh);
-	}
-	for (unsigned int i = 0; i < node->mNumChildren; i++) {
-		processNode(node->mChildren[i], scene, meshes);
-	}
-}
-
-bool loadModel(const std::string& path, std::vector<Mesh> &meshes) {
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
-	
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-		return false;
-	}
-	processNode(scene->mRootNode, scene, meshes);
-	return true;
-}
-
-//Error processing callback procedure
-void error_callback(int error, const char* description) {
-	fputs(description, stderr);
-}
-
-void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (action == GLFW_PRESS) {
-		if (key == GLFW_KEY_LEFT) speed_x = -PI / 2;
-		if (key == GLFW_KEY_RIGHT) speed_x = PI / 2;
-		if (key == GLFW_KEY_UP) speed_y = PI / 2;
-		if (key == GLFW_KEY_DOWN) speed_y = -PI / 2;
-		if (key == GLFW_KEY_S) movement_x = PI / 2;
-		if (key == GLFW_KEY_W) movement_x = -PI / 2;
-		if (key == GLFW_KEY_A) movement_y = PI / 2;
-		if (key == GLFW_KEY_D) movement_y = -PI / 2;
-		if (key == GLFW_KEY_Z) ws = 2;
-		if (key == GLFW_KEY_C) ws = -0.1f;
-		if (key == GLFW_KEY_B) printf("x: %f\ny: %f\nz: %f\n", pos.x, pos.y, pos.z);
-		if (key == GLFW_KEY_0) ifCaseVisible = !ifCaseVisible;
-	}
-	if (action == GLFW_RELEASE) {
-		if (key == GLFW_KEY_LEFT) speed_x = 0;
-		if (key == GLFW_KEY_RIGHT) speed_x = 0;
-		if (key == GLFW_KEY_UP) speed_y = 0;
-		if (key == GLFW_KEY_DOWN) speed_y = 0;
-		if (key == GLFW_KEY_W) movement_x = 0;
-		if (key == GLFW_KEY_S) movement_x = 0;
-		if (key == GLFW_KEY_A) movement_y = 0;
-		if (key == GLFW_KEY_D) movement_y = 0;
-		if (key == GLFW_KEY_Z) ws = 0;
-		if (key == GLFW_KEY_C) ws = 0;
-	}
-}
-
-void windowResizeCallback(GLFWwindow* window,int width,int height) {
-    if (height==0) return;
-    aspectRatio=(float)width/(float)height;
-    glViewport(0,0,width,height);
-}
+// vectors used to control camera movement
+glm::vec3 pos;
+glm::vec3 dir;
 
 GLuint readTexture(const char* filename) {
 	GLuint tex;
@@ -242,6 +108,127 @@ GLuint readTexture(const char* filename) {
 	return tex;
 }
 
+void processMesh(aiMesh* mesh, const aiScene* scene, Mesh *givenMesh) {
+	for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+		givenMesh->vertex.position.push_back(glm::vec4(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1));
+		givenMesh->vertex.normal.push_back(glm::vec4(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z, 0));
+		if (mesh->mTextureCoords[0]) {
+			givenMesh->vertex.texCoords.push_back(glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y));
+		}
+		else {
+			givenMesh->vertex.texCoords.push_back(glm::vec2(0.0f, 0.0f));
+		}
+		
+	}
+
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+		aiFace face = mesh->mFaces[i];
+		for (unsigned int j = 0; j < face.mNumIndices; j++) {
+			givenMesh->indices.push_back(face.mIndices[j]);
+		}
+	}
+
+	aiString textureName;	// name of the texture
+	scene->mMaterials[mesh->mMaterialIndex]->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), textureName);	// getting first diffuse texture name
+	// searching for texture in texVec
+	for (int i = 0; i < texVec.size(); i++) {
+		if (texVec[i].type == textureName) {
+			givenMesh->tex = &texVec[i];
+			break;
+		}
+	}
+}
+void processNode(aiNode* node, const aiScene* scene, std::vector<Mesh> &meshes) {
+	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		Mesh givenMesh;
+		processMesh(mesh, scene, &givenMesh);
+		if(givenMesh.indices.size() > 0)	meshes.push_back(givenMesh);
+	}
+	for (unsigned int i = 0; i < node->mNumChildren; i++) {
+		processNode(node->mChildren[i], scene, meshes);
+	}
+}
+bool loadModel(const std::string& path, std::vector<Mesh> &meshes) {
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices);
+	
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+		return false;
+	}
+
+	if (scene->HasMaterials())	// true when number of materials is greater than 0
+	{
+		for (int i = 0; i < scene->mNumMaterials; i++)
+		{
+			aiReturn ret;	// success flag
+
+			aiMaterial* material = scene->mMaterials[i];	// get the current material
+			
+			aiString materialName;	// name of the material
+			ret = material->Get(AI_MATKEY_NAME, materialName);	// get the material name
+			if (ret != AI_SUCCESS) materialName = "";			// check if material was found
+
+			int numTextures = material->GetTextureCount(aiTextureType_DIFFUSE); // amount of diffuse textures
+			
+			aiString textureName;	// filename of the texture
+			if (numTextures > 0) {	// check if there are any diffuse textures
+				material->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), textureName);	// getting first diffuse texture
+
+				// Creating new Texture 
+				Texture newTex;
+				newTex.type = textureName;
+				newTex.tex = readTexture(textureName.C_Str());
+				texVec.push_back(newTex);
+			}
+		}
+	}
+
+	processNode(scene->mRootNode, scene, meshes);
+	return true;
+}
+
+float calculateGearAngle(double oldTime, double time) {
+	time = time * 2.0 * PI;
+	oldTime = oldTime * 2.0 * PI;
+	float oldTimeSin = sin(oldTime);
+	float timeSin = sin(time);
+	float angle = 0;
+	if (oldTimeSin > 0.7 && timeSin > 0.7) {
+		float temp1 = -1 * sin(2.346 - time);
+		float temp2 = -1 * sin(2.346 - oldTime);
+		angle = temp1 - temp2;
+	}
+	else if (oldTimeSin > 0.7 && timeSin <= 0.7) {
+		float temp1 = -1 * sin(2.346 - 2.366);
+		float temp2 = -1 * sin(2.346 - oldTime);
+		angle = temp1 - temp2;
+	}
+	else if (oldTimeSin <= 0.7 && timeSin > 0.7) {
+		float temp1 = -1 * sin(2.346 - time);
+		float temp2 = -1 * sin(2.346 - 0.7754);
+		angle = temp1 - temp2;
+	}
+	else if (oldTimeSin < -0.9 && timeSin < -0.9) {
+		float temp1 = 0.5 * sin(2 * time + 2.47437);
+		float temp2 = 0.5 * sin(2 * oldTime + 2.47437);
+		angle = temp1 - temp2;
+	}
+	else if (oldTimeSin < -0.9 && timeSin >= -0.9) {
+		float temp1 = 0.5 * sin(2 * 5.162 + 2.47437);
+		float temp2 = 0.5 * sin(2 * oldTime + 2.47437);
+		angle = temp1 - temp2;
+	}
+	else if (oldTimeSin >= -0.9 && timeSin < -0.9) {
+		float temp1 = 0.5 * sin(2 * time + 2.47437);
+		float temp2 = 0.5 * sin(2 * 4.261 + 2.47437);
+		angle = temp1 - temp2;
+	}
+	else {
+		angle = 0;
+	}
+	return angle / 1.63653278517;
+}
 glm::vec3 calculateCenter(int meshIndex) {
 	if (rotationCenters[meshIndex] == glm::vec3(0, 0, 0)) {
 		float minX, maxX, minY, maxY, minZ, maxZ;
@@ -265,7 +252,6 @@ glm::vec3 calculateCenter(int meshIndex) {
 	}
 	return rotationCenters[meshIndex];
 }
-
 glm::mat4 rotateObject(glm::mat4 M, float val, int meshIndex)
 {
 	M = glm::translate(M, rotationCenters[meshIndex]);
@@ -273,46 +259,105 @@ glm::mat4 rotateObject(glm::mat4 M, float val, int meshIndex)
 	M = glm::translate(M, rotationCenters[meshIndex]*(-1.0f));
 	return M;
 }
+
+// error processing callback procedure
+void error_callback(int error, const char* description) {
+	fputs(description, stderr);
+}
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (action == GLFW_PRESS) {
+		if (key == GLFW_KEY_LEFT) speed_x = -PI / 2;
+		if (key == GLFW_KEY_RIGHT) speed_x = PI / 2;
+		if (key == GLFW_KEY_UP) speed_y = PI / 2;
+		if (key == GLFW_KEY_DOWN) speed_y = -PI / 2;
+		if (key == GLFW_KEY_S) movement_x = PI / 2;
+		if (key == GLFW_KEY_W) movement_x = -PI / 2;
+		if (key == GLFW_KEY_A) movement_y = PI / 2;
+		if (key == GLFW_KEY_D) movement_y = -PI / 2;
+		if (key == GLFW_KEY_Z) ws = 2;
+		if (key == GLFW_KEY_C) ws = -0.1f;
+		if (key == GLFW_KEY_B) printf("x: %f\ny: %f\nz: %f\n", pos.x, pos.y, pos.z);
+		if (key == GLFW_KEY_O) ifCaseVisible = !ifCaseVisible;
+		if (key == GLFW_KEY_P) pos = GEAR_POS;
+		if (key == GLFW_KEY_L) pos = START_POS;
+		if (key == GLFW_KEY_U) speed_y -= PI / 2 /100;
+		if (key == GLFW_KEY_J) speed_y += PI / 2 / 100;
+		if (key == GLFW_KEY_Y) ws = 8;
+		if (key == GLFW_KEY_T) { time += 0.1; printf("time: %f\n", time); }
+		if (key == GLFW_KEY_G) { time -= 0.1; printf("time: %f\n", time); }
+		if (key == GLFW_KEY_R) { time += 0.01; printf("time: %f\n", time); }
+		if (key == GLFW_KEY_F) { time -= 0.01; printf("time: %f\n", time); }
+		if (key == GLFW_KEY_N) { gearAngle += 0.1; printf("gearAngle: %f\n", gearAngle); }
+		if (key == GLFW_KEY_M) { gearAngle -= 0.1; printf("gearAngle: %f\n", gearAngle); }
+		if (key == GLFW_KEY_I) { gearAngle += 0.01; printf("gearAngle: %f\n", gearAngle); }
+		if (key == GLFW_KEY_K) { gearAngle -= 0.01; printf("gearAngle: %f\n", gearAngle); }
+	}
+	if (action == GLFW_RELEASE) {
+		if (key == GLFW_KEY_LEFT) speed_x = 0;
+		if (key == GLFW_KEY_RIGHT) speed_x = 0;
+		if (key == GLFW_KEY_UP) speed_y = 0;
+		if (key == GLFW_KEY_DOWN) speed_y = 0;
+		if (key == GLFW_KEY_W) movement_x = 0;
+		if (key == GLFW_KEY_S) movement_x = 0;
+		if (key == GLFW_KEY_A) movement_y = 0;
+		if (key == GLFW_KEY_D) movement_y = 0;
+		if (key == GLFW_KEY_Z) ws = 0;
+		if (key == GLFW_KEY_C) ws = 0;
+	}
+}
+void windowResizeCallback(GLFWwindow* window,int width,int height) {
+    if (height==0) return;
+    aspectRatio=(float)width/(float)height;
+    glViewport(0,0,width,height);
+}
 //Initialization code procedure
 void initOpenGLProgram(GLFWwindow* window) {
-	//************Place any code here that needs to be executed once, at the program start************
+	aspectRatio = 1;
+
 	glClearColor(1, 0.4f, 0.8f, 1);
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, keyCallback);
 	sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
-	tex0 = readTexture("metal.png");
-	tex1 = readTexture("sky.png");
-	std::string modelPath = "Models/OteksturowanyZegar2.obj";
-	if (!loadModel(modelPath, meshVec)) {
+
+	// Loading model from file using assimp library
+	if (!loadModel(MODEL_PATH, meshVec)) {
 		fprintf(stderr, "Failed to load model!\n");
 		exit(EXIT_FAILURE);
 	}
-	fill(rotationCenters.begin(), rotationCenters.end(), glm::vec3(0, 0, 0));
-	for (int i = 0; i < 29; i++)
-		calculateCenter(i);
-	rotationCenters[11] = glm::vec3(0.0f, 15.362991f, 1.10f);
-	//printf("Vertices: %d\n", meshVec[0].verts.size());
-	//printf("Indices: %d\n", meshVec[0].teks.size());
-}
+	meshNumber = meshVec.size();
 
+	// Calculating centers of rotation for all meshes
+	rotationCenters = std::vector<glm::vec3>(meshNumber, glm::vec3(0, 0, 0));
+	//fill(rotationCenters.begin(), rotationCenters.end(), glm::vec3(0, 0, 0));
+	for (int i = 0; i < meshNumber; i++)	calculateCenter(i);
+	
+	// Describing centers of rotation of specific meshes which rotate in a specific way
+	rotationCenters[11] = glm::vec3(0.0f, 15.356f, 1.10f); // hour hand
+	rotationCenters[18] = glm::vec3(0.0f, 15.356f, 1.10f); // minutes hand
+	rotationCenters[22] = glm::vec3(0.0f, 15.356f, 1.10f); // seconds hand
+	rotationCenters[20] = glm::vec3(0.00779f, 17.7845f, -0.755f); // pendulum
+
+	printf("Total number of meshes: %d\n", meshNumber);
+
+	//for (int i = 0; i < meshNumber; i++) {
+	//	printf("%d:\n", i);
+	//	printf("\tpos:%d\n", meshVec[i].vertex.position.size());
+	//	printf("\tnor:%d\n", meshVec[i].vertex.normal.size());
+	//	printf("\ttex:%d\n", meshVec[i].vertex.texCoords.size());
+	//	printf("\tind:%d\n", meshVec[i].indices.size());
+	//	printf("\ttex:%d - %s\n\n", meshVec[i].tex, meshVec[i].TexType);
+	//}
+}
 //Release resources allocated by the program
 void freeOpenGLProgram(GLFWwindow* window) {
-	//************Place any code here that needs to be executed once, after the main loop ends************
-	delete sp;
 	for (int i = 0; i < texVec.size(); i++) {
 		glDeleteTextures(1, &texVec[i].tex);
 	}
+	delete sp;
 }
-glm::vec3 dir = glm::vec3(0, 0, 1);
-
-
-
-
-
 //Drawing procedure
 void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
-	//************Place any code here that draws something inside the window******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::mat4 V = glm::lookAt(
 		pos,
@@ -320,52 +365,42 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 		glm::vec3(0.0f, 1.0f, 0.0f)); //compute view matrix
 	glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.1f, 500.0f); //compute projection matrix
 
-	sp->use();//activate shading program
-	//Send parameters to graphics card
-	glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
+	sp->use();	//activate shading program
+
+	// send parameters to graphics card
 	glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
+	glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
 
-	
-	
+	glUniform1i(sp->u("textureMap0"), 0);	// associate sampler textureMap0 with the 0-th texturing unit
+	glActiveTexture(GL_TEXTURE0);			// activating the 0-th texturing unit
 
-	glUniform1i(sp->u("textureMap0"), 0); // Associate sampler textureMap0 with the 0-th texturing unit
-	glActiveTexture(GL_TEXTURE0); //Assign texture tex0 to the 0-th texturing unit
-
-	for (int x = 0; x < 29; x++)
+	for (int x = 0; x < meshNumber; x++)
 	{
-		if (!ifCaseVisible && (x == 14 || x == 15 || x == 24 || x == 25 || x == 26))
-		{
-			continue;
-		}
+		// Check for meshes that correspond to case
+		if (!ifCaseVisible && (x == 14 || x == 15 || x == 24 || x == 25 || x == 26)) continue;
+
 		glm::mat4 M = glm::mat4(1.0f);
+
 		//M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f)); //Compute model matrix
 		M = glm::rotate(M, PI + angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); //Compute model matrix
-		if (x == 11)
-		{
-			//M = glm::translate(M, glm::vec3(0.0f, 15.362991f, 1.10f));
-			//M = glm::rotate(M, 0.3972f*PI, glm::vec3(0.0f, 0.0f, 1.0f));
-			//M = glm::rotate(M, angle_y, glm::vec3(0.0f, 0.0f, 1.0f));
-			//M = glm::translate(M, glm::vec3(-0.0f, -15.362991f, -1.10f));
-			M=rotateObject(M, angle_y, x);
-		}
 		
-		if (x == 18)
-		{
-			M = glm::translate(M, glm::vec3(0.0f, 15.362991f, 1.10f));
-			M = glm::rotate(M, 0.76667f*PI, glm::vec3(0.0f, 0.0f, 1.0f));
-			M = glm::translate(M, glm::vec3(-0.0f, -15.362991f, -1.10f));
-		}
-		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
-		glBindTexture(GL_TEXTURE_2D, meshVec[x].tex);
-		glEnableVertexAttribArray(sp->a("vertex")); //Enable sending data to the attribute vertex
-		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, meshVec[x].vertex.position.data()); //Specify source of the data for the attribute vertex
-		glEnableVertexAttribArray(sp->a("normal")); //Enable sending data to the attribute color
-		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, meshVec[x].vertex.normal.data()); //Specify source of the data for the attribute normal
-		glEnableVertexAttribArray(sp->a("texCoord0")); //Enable sending data to the attribute texCoord0
-		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, meshVec[x].vertex.texCoords.data()); //Specify source of the data for the attribute texCoord0
+		if (x == 11)	M = rotateObject(M, angle_y, x);
+		if (x == 18)	M = rotateObject(M, angle_y * 12, x);
+		if (x == 22)	M = rotateObject(M, angle_y * 12 * 60, x);
+		if (x == 20)	M = rotateObject(M, glm::radians((sin(time*2*PI-PI/2)+1)*7), x);
+		if (x == 21)	M = rotateObject(M, glm::radians(gearAngle), x);
+		
+		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));	// sending matrix M to graphics card
+		glBindTexture(GL_TEXTURE_2D, meshVec[x].tex->tex);				// binding apprioprate texture handle with active texturing unit
+		
+		glEnableVertexAttribArray(sp->a("vertex"));		// enable sending data to the attribute vertex
+		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, meshVec[x].vertex.position.data());		// specify source of the data for the attribute vertex
+		glEnableVertexAttribArray(sp->a("normal"));		// enable sending data to the attribute color
+		glVertexAttribPointer(sp->a("normal"), 4, GL_FLOAT, false, 0, meshVec[x].vertex.normal.data());			// specify source of the data for the attribute normal
+		glEnableVertexAttribArray(sp->a("texCoord0"));	// enable sending data to the attribute texCoord0
+		glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, meshVec[x].vertex.texCoords.data());	// specify source of the data for the attribute texCoord0
 
-		//glDrawArrays(GL_TRIANGLES,0,vertices.size()); //Draw the object
-		glDrawElements(GL_TRIANGLES, meshVec[x].indices.size(), GL_UNSIGNED_INT, meshVec[x].indices.data());
+		glDrawElements(GL_TRIANGLES, meshVec[x].indices.size(), GL_UNSIGNED_INT, meshVec[x].indices.data());	// draw mesh
 	}
 
 	glDisableVertexAttribArray(sp->a("vertex")); //Disable sending data to the attribute vertex
@@ -405,28 +440,47 @@ int main(void)
 
 	initOpenGLProgram(window); //Call initialization procedure
 
+	speed_x = 0; //angular speed in radians
+	speed_y = 0; //angular speed in radians
+	movement_x = 0;
+	movement_y = 0;
+	ws = 0;
+	ifCaseVisible = true;
+	time = 0;
+	oldTime = 0;
+	gearAngle = 0;
+	pos = START_POS;
 
 	float angle_x=0; //current rotation angle of the object, x axis
 	float angle_y=0; //current rotation angle of the object, y axis
 	float player_speed_x = 0;
 	float player_speed_y = 0;
+
 	glfwSetTime(0); //Zero the timer
 	//Main application loop
 	while (!glfwWindowShouldClose(window)) //As long as the window shouldnt be closed yet...
 	{
-        angle_x+=speed_x*glfwGetTime(); //Add angle by which the object was rotated in the previous iteration
-		angle_y+=speed_y*glfwGetTime(); //Add angle by which the object was rotated in the previous iteration
-		player_speed_x += movement_x * glfwGetTime();
-		player_speed_y += movement_y * glfwGetTime();
+		double deltaTime = glfwGetTime();
+		glfwSetTime(0); //Zero the timer
+
+		angle_x += speed_x * deltaTime; //Add angle by which the object was rotated in the previous iteration
+		angle_y += speed_y * deltaTime; //Add angle by which the object was rotated in the previous iteration
+
+		player_speed_x += movement_x * deltaTime;
+		player_speed_y += movement_y * deltaTime;
+
 		glm::mat4 Mc = glm::rotate(glm::mat4(1.0f), player_speed_y, glm::vec3(0, 1, 0));
 		Mc = glm::rotate(Mc, player_speed_x, glm::vec3(1, 0, 0));
 		glm::vec4 dir_ = Mc * glm::vec4(0, 0, 1, 0);
 		dir = glm::vec3(dir_);
 
 		glm::vec3 mdir = glm::normalize(glm::vec3(dir.x, dir.y, dir.z));
+		pos += ws * (float)deltaTime * mdir;
 
-		pos += ws * (float)glfwGetTime() * mdir;
-        glfwSetTime(0); //Zero the timer
+//		time += deltaTime;
+//		gearAngle += calculateGearAngle(oldTime, time);
+		oldTime = time;
+
 		drawScene(window,angle_x,angle_y); //Execute drawing procedure
 		glfwPollEvents(); //Process callback procedures corresponding to the events that took place up to now
 	}
