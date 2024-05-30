@@ -1,0 +1,52 @@
+# Blender 4.1.1 MTL File: 'OteksturowanyZegar.blend'
+# www.blender.org
+
+newmtl PM001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd Models/metal_16_basecolor-1K.png
+
+newmtl PM002
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd Models/metal_16_basecolor-1K.png
+
+newmtl glass
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.182540 0.182540 0.182540
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd Models/beige_wall_001_diff_1k.png
+
+newmtl highlight
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.039683 0.039683 0.039683
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd Models/wood_table_001_diff_1k.png
+
+newmtl wood
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.015873 0.015873 0.015873
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd Models/rosewood_veneer1_diff_1k.png

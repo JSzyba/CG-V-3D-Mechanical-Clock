@@ -14,7 +14,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #define GLM_FORCE_RADIANS
-#define MODEL_PATH "Models/OteksturowanyZegar2.obj"
+#define MODEL_PATH "Models/Clock.obj"
 #define START_POS glm::vec3(0, 11, -25)
 #define GEAR_POS glm::vec3(0, 15.5, -8)
 
@@ -55,10 +55,7 @@ struct Mesh {
 	std::vector<unsigned int> indices;
 
 	Texture* tex;
-	//aiString TexType;
-	//GLuint* tex;
 };
-
 
 float aspectRatio;	// width to height ratio of window
 
@@ -68,9 +65,11 @@ float movement_x;	// angular speed in radians of camera
 float movement_y;	// angular speed in radians of camera
 float ws;			// speed of camera
 
-float gearAngle;	// rotation angle of gears
-double time;		// time elapsed from start of program to current frame
-double oldTime;		// time elapsed from start of program to last frame
+double gearAngle;		// rotation angle of gears
+double time;			// time elapsed from start of program to current frame
+double oldTime;			// time elapsed from start of program to last frame
+int fullCycle;			// full rotations of drum holding weight
+double timeAmplifier;	// multiplier of elapsing time
 
 int meshNumber;		// number of meshes
 bool ifCaseVisible;	// flag describing if case should be visible
@@ -80,6 +79,7 @@ ShaderProgram* sp;	// pointer to the shader program
 std::vector<Mesh> meshVec;					// vector of all meshes
 std::vector<Texture> texVec;				// vector of all textures
 std::vector<glm::vec3> rotationCenters;		// vector of rotation centers of objects
+std::vector<double> gearRatio(29, 0.0);		// vector of gear ratios
 
 // vectors used to control camera movement
 glm::vec3 pos;
@@ -108,6 +108,7 @@ GLuint readTexture(const char* filename) {
 	return tex;
 }
 
+// procedures and functions used to read model from file using assimp library
 void processMesh(aiMesh* mesh, const aiScene* scene, Mesh *givenMesh) {
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
 		givenMesh->vertex.position.push_back(glm::vec4(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z, 1));
@@ -188,46 +189,83 @@ bool loadModel(const std::string& path, std::vector<Mesh> &meshes) {
 	return true;
 }
 
+// functions used to animate model
 float calculateGearAngle(double oldTime, double time) {
-	time = time * 2.0 * PI;
-	oldTime = oldTime * 2.0 * PI;
-	float oldTimeSin = sin(oldTime);
-	float timeSin = sin(time);
-	float angle = 0;
-	if (oldTimeSin > 0.7 && timeSin > 0.7) {
-		float temp1 = -1 * sin(2.346 - time);
-		float temp2 = -1 * sin(2.346 - oldTime);
-		angle = temp1 - temp2;
+	if (time < oldTime) return 0;
+
+	float angle = floor(time - oldTime) * 6;
+
+	oldTime = oldTime - floor(oldTime);
+	time = time - floor(time);
+
+	int oldCase;
+	if (oldTime < 0.16) oldCase = 0;
+	else if (oldTime < 0.3) oldCase = 1;
+	else if (oldTime < 0.73) oldCase = 2;
+	else oldCase = 3;
+
+	int newCase;
+	if (time < 0.16) newCase = 0;
+	else if (time < 0.3) newCase = 4;
+	else if (time < 0.73) newCase = 8;
+	else newCase = 12;
+
+	switch (oldCase + newCase) {
+		case 0: 
+			angle += (time - oldTime) * 2.5;
+			break;
+		case 5:
+			angle += (time - oldTime) * 7.857143;
+			break;
+		case 10:
+			angle += (time - oldTime) * 0;
+			break;
+		case 15:
+			angle += (time - oldTime) * 16.666666;
+			break;
+
+		case 4:
+			angle += (0.16 - oldTime) * 2.5 +		(time - 0.16) * 7.857143;
+			break;
+		case 9:
+			angle += (0.3 - oldTime) * 7.857143 +	(time - 0.3) * 0;
+			break;
+		case 14:
+			angle += (0.73 - oldTime) * 0 +			(time - 0.73) * 16.666666;
+			break;
+		case 3:
+			angle += (1.0 - oldTime) * 16.666666 +	(time - 0.0) * 2.5;
+			break;
+
+		case 8:
+			angle += (0.16 - oldTime) * 2.5 +		(0.3 - 0.16) * 7.857143 +	(time - 0.3) * 0;
+			break;
+		case 13:
+			angle += (0.3 - oldTime) * 7.857143 +	(0.73 - 0.3) * 0 +			(time - 0.73) * 16.66666;
+			break;
+		case 2:
+			angle += (0.73 - oldTime) * 0 +			(1.0 - 0.73) * 16.66666 +	(time - 0.0) * 2.5;
+			break;
+		case 7:
+			angle += (1.0 - oldTime) * 16.66666 +	(0.16 - 0.0) * 2.5 +		(time - 0.16) * 7.857143;
+			break;
+
+		case 12:
+			angle += (0.16 - oldTime) * 2.5 +		(0.3 - 0.16) * 7.857143 +	(0.73 - 0.3) * 0 +				(time - 0.73) * 16.666666;
+			break;
+		case 1:
+			angle += (0.3 - oldTime) * 7.857143 +	(0.73 - 0.3) * 0 +			(1.0 - 0.73) * 16.666666 +		(time - 0.0) * 2.5;
+			break;
+		case 6:
+			angle += (0.73 - oldTime) * 0 +			(1.0 - 0.73) * 16.666666 +	(0.16 - 0.0) * 2.5 +			(time - 0.16) * 7.857143;
+			break;
+		case 11:
+			angle += (1.0 - oldTime) * 16.666666 +	(0.16 - 0.0) * 2.5 +		(0.3 - 0.16) * 7.857143 +		(time - 0.3) * 0;
+			break;
+		default: angle = 0;
 	}
-	else if (oldTimeSin > 0.7 && timeSin <= 0.7) {
-		float temp1 = -1 * sin(2.346 - 2.366);
-		float temp2 = -1 * sin(2.346 - oldTime);
-		angle = temp1 - temp2;
-	}
-	else if (oldTimeSin <= 0.7 && timeSin > 0.7) {
-		float temp1 = -1 * sin(2.346 - time);
-		float temp2 = -1 * sin(2.346 - 0.7754);
-		angle = temp1 - temp2;
-	}
-	else if (oldTimeSin < -0.9 && timeSin < -0.9) {
-		float temp1 = 0.5 * sin(2 * time + 2.47437);
-		float temp2 = 0.5 * sin(2 * oldTime + 2.47437);
-		angle = temp1 - temp2;
-	}
-	else if (oldTimeSin < -0.9 && timeSin >= -0.9) {
-		float temp1 = 0.5 * sin(2 * 5.162 + 2.47437);
-		float temp2 = 0.5 * sin(2 * oldTime + 2.47437);
-		angle = temp1 - temp2;
-	}
-	else if (oldTimeSin >= -0.9 && timeSin < -0.9) {
-		float temp1 = 0.5 * sin(2 * time + 2.47437);
-		float temp2 = 0.5 * sin(2 * 4.261 + 2.47437);
-		angle = temp1 - temp2;
-	}
-	else {
-		angle = 0;
-	}
-	return angle / 1.63653278517;
+
+	return angle;
 }
 glm::vec3 calculateCenter(int meshIndex) {
 	if (rotationCenters[meshIndex] == glm::vec3(0, 0, 0)) {
@@ -259,6 +297,13 @@ glm::mat4 rotateObject(glm::mat4 M, float val, int meshIndex)
 	M = glm::translate(M, rotationCenters[meshIndex]*(-1.0f));
 	return M;
 }
+glm::mat4 scaleObject(glm::mat4 M, glm::vec3 val, int meshIndex)
+{
+	M = glm::translate(M, rotationCenters[meshIndex]);
+	M = glm::scale(M, val);
+	M = glm::translate(M, rotationCenters[meshIndex] * -1.0f);
+	return M;
+}
 
 // error processing callback procedure
 void error_callback(int error, const char* description) {
@@ -280,17 +325,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		if (key == GLFW_KEY_O) ifCaseVisible = !ifCaseVisible;
 		if (key == GLFW_KEY_P) pos = GEAR_POS;
 		if (key == GLFW_KEY_L) pos = START_POS;
-		if (key == GLFW_KEY_U) speed_y -= PI / 2 /100;
-		if (key == GLFW_KEY_J) speed_y += PI / 2 / 100;
-		if (key == GLFW_KEY_Y) ws = 8;
-		if (key == GLFW_KEY_T) { time += 0.1; printf("time: %f\n", time); }
-		if (key == GLFW_KEY_G) { time -= 0.1; printf("time: %f\n", time); }
-		if (key == GLFW_KEY_R) { time += 0.01; printf("time: %f\n", time); }
-		if (key == GLFW_KEY_F) { time -= 0.01; printf("time: %f\n", time); }
-		if (key == GLFW_KEY_N) { gearAngle += 0.1; printf("gearAngle: %f\n", gearAngle); }
-		if (key == GLFW_KEY_M) { gearAngle -= 0.1; printf("gearAngle: %f\n", gearAngle); }
-		if (key == GLFW_KEY_I) { gearAngle += 0.01; printf("gearAngle: %f\n", gearAngle); }
-		if (key == GLFW_KEY_K) { gearAngle -= 0.01; printf("gearAngle: %f\n", gearAngle); }
+		if (key == GLFW_KEY_I) timeAmplifier *= 2.0;
+		if (key == GLFW_KEY_K) timeAmplifier /= 2.0;
 	}
 	if (action == GLFW_RELEASE) {
 		if (key == GLFW_KEY_LEFT) speed_x = 0;
@@ -314,7 +350,7 @@ void windowResizeCallback(GLFWwindow* window,int width,int height) {
 void initOpenGLProgram(GLFWwindow* window) {
 	aspectRatio = 1;
 
-	glClearColor(1, 0.4f, 0.8f, 1);
+	glClearColor(0.67f, 0.84f, 0.9f, 1);
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, keyCallback);
@@ -337,6 +373,29 @@ void initOpenGLProgram(GLFWwindow* window) {
 	rotationCenters[18] = glm::vec3(0.0f, 15.356f, 1.10f); // minutes hand
 	rotationCenters[22] = glm::vec3(0.0f, 15.356f, 1.10f); // seconds hand
 	rotationCenters[20] = glm::vec3(0.00779f, 17.7845f, -0.755f); // pendulum
+
+	// Describing gearRatio of different gears for apprioprate scaling rotation angle
+	gearRatio[21] = -1.0;
+	gearRatio[22] = -1.0;
+	gearRatio[23] = -1.0;
+	gearRatio[3] = 1.0 / 10;
+	gearRatio[4] = 1.0 / 10;
+	gearRatio[16] = -1.0 / 60;
+	gearRatio[17] = -1.0 / 60;
+	gearRatio[0] = (1.0 / 60) * (6.0 / 35.0);
+	gearRatio[18] = -1.0 / 60;
+	gearRatio[19] = -1.0 / 60;
+	gearRatio[5] = 1.0 / 360;
+	gearRatio[7] = 1.0 / 360;
+	gearRatio[6] = -1.0 / 720;
+	gearRatio[11] = -1.0 / 720;
+	gearRatio[12] = -1.0 / 720;
+	gearRatio[13] = -1.0 / 720;
+	gearRatio[1] = 1.0 / 2880;
+	gearRatio[2] = 1.0 / 2880;
+	gearRatio[8] = -1.0 / 11520;
+	gearRatio[9] = 1.0 / 28800;
+	gearRatio[10] = 1.0 / 28800;
 
 	printf("Total number of meshes: %d\n", meshNumber);
 
@@ -376,19 +435,37 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 	for (int x = 0; x < meshNumber; x++)
 	{
-		// Check for meshes that correspond to case
-		if (!ifCaseVisible && (x == 14 || x == 15 || x == 24 || x == 25 || x == 26)) continue;
 
 		glm::mat4 M = glm::mat4(1.0f);
 
 		//M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f)); //Compute model matrix
 		M = glm::rotate(M, PI + angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); //Compute model matrix
 		
-		if (x == 11)	M = rotateObject(M, angle_y, x);
-		if (x == 18)	M = rotateObject(M, angle_y * 12, x);
-		if (x == 22)	M = rotateObject(M, angle_y * 12 * 60, x);
-		if (x == 20)	M = rotateObject(M, glm::radians((sin(time*2*PI-PI/2)+1)*7), x);
-		if (x == 21)	M = rotateObject(M, glm::radians(gearAngle), x);
+		// Check for meshes that correspond to case
+		if (x == 14 || x == 15 || x == 24 || x == 25 || x == 26) {
+			if (!ifCaseVisible) continue;
+		}
+		else if (x == 27)	M = glm::translate(M, glm::vec3(0, -gearRatio[10] * gearAngle / 360 * 2 * PI * 0.248100 - (2 * PI * 0.248100) * fullCycle, 0));	// weight
+		else if (x == 28)	// wire
+		{
+			double temp = gearRatio[10] * gearAngle / 360 * 2 * PI * 0.248100;
+			if (temp > 2 * PI * 0.248100) {	// check if full rotation was made
+				fullCycle++;
+				gearAngle -= 360.0 / gearRatio[10];
+				time -= 360.0 / gearRatio[10] / 6.0;
+				oldTime = time;
+			}
+			else {
+				temp += (2 * PI * 0.248100) * fullCycle;
+			}
+			M = glm::translate(M, glm::vec3(0, -temp / 2, 0));
+			M = scaleObject(M, glm::vec3(1, (temp + 0.383693)/(0.383693), 1), x);
+		}
+		else if (x == 20)	M = rotateObject(M, glm::radians((sin(time * 2 * PI - PI / 2) + 1) * 7), x);	// pendulum
+		else if (x == 11) { M = rotateObject(M, glm::radians(gearRatio[x] * gearAngle), x); M = scaleObject(M, glm::vec3(2, 1, 2), x); }
+		else if (x == 18) { M = rotateObject(M, glm::radians(gearRatio[x] * gearAngle), x); M = scaleObject(M, glm::vec3(2, 1, 2), x); }
+		else if (x == 22) { M = rotateObject(M, glm::radians(gearRatio[x] * gearAngle), x); M = scaleObject(M, glm::vec3(2, 1, 2), x); }
+		else				M = rotateObject(M, glm::radians(gearRatio[x] * gearAngle), x);					// other rotatable objects (gears, hands, wheels)
 		
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));	// sending matrix M to graphics card
 		glBindTexture(GL_TEXTURE_2D, meshVec[x].tex->tex);				// binding apprioprate texture handle with active texturing unit
@@ -440,8 +517,8 @@ int main(void)
 
 	initOpenGLProgram(window); //Call initialization procedure
 
-	speed_x = 0; //angular speed in radians
-	speed_y = 0; //angular speed in radians
+	speed_x = 0;
+	speed_y = 0;
 	movement_x = 0;
 	movement_y = 0;
 	ws = 0;
@@ -450,9 +527,11 @@ int main(void)
 	oldTime = 0;
 	gearAngle = 0;
 	pos = START_POS;
+	timeAmplifier = 1;
+	fullCycle = 0;
 
-	float angle_x=0; //current rotation angle of the object, x axis
-	float angle_y=0; //current rotation angle of the object, y axis
+	float angle_x=0;
+	float angle_y=0;
 	float player_speed_x = 0;
 	float player_speed_y = 0;
 
@@ -463,8 +542,8 @@ int main(void)
 		double deltaTime = glfwGetTime();
 		glfwSetTime(0); //Zero the timer
 
-		angle_x += speed_x * deltaTime; //Add angle by which the object was rotated in the previous iteration
-		angle_y += speed_y * deltaTime; //Add angle by which the object was rotated in the previous iteration
+		angle_x += speed_x * deltaTime;
+		angle_y += speed_y * deltaTime;
 
 		player_speed_x += movement_x * deltaTime;
 		player_speed_y += movement_y * deltaTime;
@@ -477,8 +556,8 @@ int main(void)
 		glm::vec3 mdir = glm::normalize(glm::vec3(dir.x, dir.y, dir.z));
 		pos += ws * (float)deltaTime * mdir;
 
-//		time += deltaTime;
-//		gearAngle += calculateGearAngle(oldTime, time);
+		time += timeAmplifier * deltaTime;
+		gearAngle += calculateGearAngle(oldTime, time);	// calculating how much does gear rotate depending on pendulum state
 		oldTime = time;
 
 		drawScene(window,angle_x,angle_y); //Execute drawing procedure
