@@ -319,8 +319,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		if (key == GLFW_KEY_W) movement_x = -PI / 2;
 		if (key == GLFW_KEY_A) movement_y = PI / 2;
 		if (key == GLFW_KEY_D) movement_y = -PI / 2;
-		if (key == GLFW_KEY_Z) ws = 2;
-		if (key == GLFW_KEY_C) ws = -0.1f;
+		if (key == GLFW_KEY_Z) ws = 10;
+		if (key == GLFW_KEY_C) ws = -10;
 		if (key == GLFW_KEY_B) printf("x: %f\ny: %f\nz: %f\n", pos.x, pos.y, pos.z);
 		if (key == GLFW_KEY_O) ifCaseVisible = !ifCaseVisible;
 		if (key == GLFW_KEY_P) pos = GEAR_POS;
@@ -422,7 +422,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 		pos,
 		pos + dir,
 		glm::vec3(0.0f, 1.0f, 0.0f)); //compute view matrix
-	glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.1f, 500.0f); //compute projection matrix
+	glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 1.0f, 500.0f); //compute projection matrix
 
 	sp->use();	//activate shading program
 
@@ -547,6 +547,11 @@ int main(void)
 
 		player_speed_x += movement_x * deltaTime;
 		player_speed_y += movement_y * deltaTime;
+
+		if (player_speed_x > 1.4f)
+			player_speed_x = 1.4f;
+		if (player_speed_x <= -1.4f)
+			player_speed_x = -1.4f;
 
 		glm::mat4 Mc = glm::rotate(glm::mat4(1.0f), player_speed_y, glm::vec3(0, 1, 0));
 		Mc = glm::rotate(Mc, player_speed_x, glm::vec3(1, 0, 0));
