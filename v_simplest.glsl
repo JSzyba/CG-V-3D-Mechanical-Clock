@@ -22,8 +22,8 @@ void main(void) {
     lp[2]= vec4(6, 30, 0, 1);
     lp[3]= vec4(-6, 30, 0, 1);
     for(int i=0; i<4; i++)
-        l[i] = normalize(V * lp[i] - V * M * vertex); //vector towards the light in eye space
-    n = normalize(V * M * normal); //normal vector in eye space
+        l[i] = normalize( lp[i] - M * vertex); //vector towards the light in eye space
+    n = normalize(M * normal); //normal vector in eye space
     
     iTexCoord0 = texCoord0;
 

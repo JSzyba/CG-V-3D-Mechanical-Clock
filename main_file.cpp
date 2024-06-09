@@ -57,6 +57,15 @@ struct Mesh {
 	Texture* tex;
 };
 
+/*
+lp[0]= vec4(0, 10, -6, 1); //light position, world space
+lp[1]= vec4(0, 10, 16, 1);
+lp[2]= vec4(6, 30, 0, 1);
+lp[3]= vec4(-6, 30, 0, 1);
+*/
+
+glm::vec3 lightCubePos[4] = { glm::vec3(0.0f, 10.0f, -6.0f), glm::vec3(0.0f, 10.0f, 16.0f), glm::vec3(6.0f, 30.0f, 0.0f), glm::vec3(-6.0f, 30.0f, 0.0f) };
+
 float aspectRatio;	// width to height ratio of window
 
 float speed_x;		// angular speed in radians of model
@@ -75,6 +84,10 @@ int meshNumber;		// number of meshes
 bool ifCaseVisible;	// flag describing if case should be visible
 
 ShaderProgram* sp;	// pointer to the shader program
+ShaderProgram* splc;
+
+Texture planks;
+Texture lamp;
 
 std::vector<Mesh> meshVec;					// vector of all meshes
 std::vector<Texture> texVec;				// vector of all textures
@@ -321,7 +334,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		if (key == GLFW_KEY_D) movement_y = -PI / 2;
 		if (key == GLFW_KEY_Z) ws = 10;
 		if (key == GLFW_KEY_C) ws = -10;
-		if (key == GLFW_KEY_B) printf("x: %f\ny: %f\nz: %f\n", pos.x, pos.y, pos.z);
+		if (key == GLFW_KEY_B) printf("x: %f\ny: %f\nz: %f\ntime: %f\n", pos.x, pos.y, pos.z, time);
 		if (key == GLFW_KEY_O) ifCaseVisible = !ifCaseVisible;
 		if (key == GLFW_KEY_P) pos = GEAR_POS;
 		if (key == GLFW_KEY_L) pos = START_POS;
@@ -355,6 +368,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glfwSetWindowSizeCallback(window, windowResizeCallback);
 	glfwSetKeyCallback(window, keyCallback);
 	sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
+	splc = new ShaderProgram("v_light_cube.glsl", NULL, "f_light_cube.glsl");
 
 	// Loading model from file using assimp library
 	if (!loadModel(MODEL_PATH, meshVec)) {
@@ -399,6 +413,9 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	printf("Total number of meshes: %d\n", meshNumber);
 
+	planks.tex = readTexture("planks.png");
+	lamp.tex = readTexture("lamp.png");
+
 	//for (int i = 0; i < meshNumber; i++) {
 	//	printf("%d:\n", i);
 	//	printf("\tpos:%d\n", meshVec[i].vertex.position.size());
@@ -413,8 +430,160 @@ void freeOpenGLProgram(GLFWwindow* window) {
 	for (int i = 0; i < texVec.size(); i++) {
 		glDeleteTextures(1, &texVec[i].tex);
 	}
+	glDeleteTextures(1, &planks.tex);
+	glDeleteTextures(1, &lamp.tex);
 	delete sp;
+	delete splc;
 }
+
+float myCubeTexCoords[] = {
+		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
+		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
+
+		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
+		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
+
+		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
+		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
+
+		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
+		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
+
+		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
+		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
+
+		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
+		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
+};
+
+float myCubeNormals[] = {
+	// Wall 1 (Back face)
+	0.0f, 0.0f, -1.0f,  // Normal for all vertices of Wall 1
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, -1.0f,
+	0.0f, 0.0f, -1.0f,
+
+	// Wall 2 (Front face)
+	0.0f, 0.0f, 1.0f,  // Normal for all vertices of Wall 2
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+
+	// Wall 3 (Bottom face)
+	0.0f, -1.0f, 0.0f,  // Normal for all vertices of Wall 3
+	0.0f, -1.0f, 0.0f,
+	0.0f, -1.0f, 0.0f,
+	0.0f, -1.0f, 0.0f,
+	0.0f, -1.0f, 0.0f,
+	0.0f, -1.0f, 0.0f,
+
+	// Wall 4 (Top face)
+	0.0f, 1.0f, 0.0f,  // Normal for all vertices of Wall 4
+	0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+
+	// Wall 5 (Left face)
+	-1.0f, 0.0f, 0.0f,  // Normal for all vertices of Wall 5
+	-1.0f, 0.0f, 0.0f,
+	-1.0f, 0.0f, 0.0f,
+	-1.0f, 0.0f, 0.0f,
+	-1.0f, 0.0f, 0.0f,
+	-1.0f, 0.0f, 0.0f,
+
+	// Wall 6 (Right face)
+	1.0f, 0.0f, 0.0f,  // Normal for all vertices of Wall 6
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+};
+
+float myCubeVertices[] = {
+	//Wall 1
+	1.0f,-1.0f,-1.0f,1.0f,
+	-1.0f, 1.0f,-1.0f,1.0f,
+	-1.0f,-1.0f,-1.0f,1.0f,
+
+	1.0f,-1.0f,-1.0f,1.0f,
+	1.0f, 1.0f,-1.0f,1.0f,
+	-1.0f, 1.0f,-1.0f,1.0f,
+
+	//Wall 2
+	-1.0f,-1.0f, 1.0f,1.0f,
+	1.0f, 1.0f, 1.0f,1.0f,
+	1.0f,-1.0f, 1.0f,1.0f,
+
+	-1.0f,-1.0f, 1.0f,1.0f,
+	-1.0f, 1.0f, 1.0f,1.0f,
+	1.0f, 1.0f, 1.0f,1.0f,
+
+
+	//Wall 3
+	-1.0f,-1.0f,-1.0f,1.0f,
+	1.0f,-1.0f, 1.0f,1.0f,
+	1.0f,-1.0f,-1.0f,1.0f,
+
+	-1.0f,-1.0f,-1.0f,1.0f,
+	-1.0f,-1.0f, 1.0f,1.0f,
+	1.0f,-1.0f, 1.0f,1.0f,
+
+	//Wall 4
+	-1.0f, 1.0f, 1.0f,1.0f,
+	1.0f, 1.0f,-1.0f,1.0f,
+	1.0f, 1.0f, 1.0f,1.0f,
+
+	-1.0f, 1.0f, 1.0f,1.0f,
+	-1.0f, 1.0f,-1.0f,1.0f,
+	1.0f, 1.0f,-1.0f,1.0f,
+
+	//Wall 5
+	-1.0f,-1.0f,-1.0f,1.0f,
+	-1.0f, 1.0f, 1.0f,1.0f,
+	-1.0f,-1.0f, 1.0f,1.0f,
+
+	-1.0f,-1.0f,-1.0f,1.0f,
+	-1.0f, 1.0f,-1.0f,1.0f,
+	-1.0f, 1.0f, 1.0f,1.0f,
+
+	//Wall 6
+	1.0f,-1.0f, 1.0f,1.0f,
+	1.0f, 1.0f,-1.0f,1.0f,
+	1.0f,-1.0f,-1.0f,1.0f,
+
+	1.0f,-1.0f, 1.0f,1.0f,
+	1.0f, 1.0f, 1.0f,1.0f,
+	1.0f, 1.0f,-1.0f,1.0f,
+
+
+
+
+};
+
+unsigned int myCubeIndices[] = {
+	// Wall 1 (Back face)
+	0, 1, 2, 3, 4, 5,
+	// Wall 2 (Front face)
+	6, 7, 8, 9, 10, 11,
+	// Wall 3 (Bottom face)
+	12, 13, 14, 15, 16, 17,
+	// Wall 4 (Top face)
+	18, 19, 20, 21, 22, 23,
+	// Wall 5 (Left face)
+	24, 25, 26, 27, 28, 29,
+	// Wall 6 (Right face)
+	30, 31, 32, 33, 34, 35
+};
+
+int myCubeVertexCount = 36;
+
 //Drawing procedure
 void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -429,9 +598,28 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	// send parameters to graphics card
 	glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 	glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
+	
 
 	glUniform1i(sp->u("textureMap0"), 0);	// associate sampler textureMap0 with the 0-th texturing unit
 	glActiveTexture(GL_TEXTURE0);			// activating the 0-th texturing unit
+
+
+	glm::mat4 N = glm::mat4(1.0f);
+	N = glm::scale(N, glm::vec3(20.0f, 1.0f, 20.0f));
+	N = glm::translate(N, glm::vec3(0.0f, -0.68f, 0.0f));
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(N));
+	glBindTexture(GL_TEXTURE_2D, planks.tex);
+
+	glEnableVertexAttribArray(sp->a("vertex"));
+	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, myCubeVertices);
+
+	glEnableVertexAttribArray(sp->a("normal"));
+	glVertexAttribPointer(sp->a("normal"), 3, GL_FLOAT, false, 0, myCubeNormals);
+
+	glEnableVertexAttribArray(sp->a("texCoord0"));
+	glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, myCubeTexCoords);
+
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, myCubeIndices);
 
 	for (int x = 0; x < meshNumber; x++)
 	{
@@ -484,6 +672,31 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glDisableVertexAttribArray(sp->a("texCoord0")); //Disable sending data to the attribute texCoord0
 	glDisableVertexAttribArray(sp->a("normal")); //Disable sending data to the attribute normal
 
+	splc->use();
+	glUniformMatrix4fv(splc->u("view"), 1, false, glm::value_ptr(V));
+	glUniformMatrix4fv(splc->u("projection"), 1, false, glm::value_ptr(P));
+	glUniform1i(splc->u("textureMap0"), 0);
+	glBindTexture(GL_TEXTURE_2D, lamp.tex);
+
+
+	glm::mat4 Mc = glm::mat4(1.0f);
+	for (int i = 0; i < 4; i++)
+	{
+		Mc = glm::translate(Mc, lightCubePos[i]);
+		glUniformMatrix4fv(splc->u("model"), 1, false, glm::value_ptr(Mc));
+		glEnableVertexAttribArray(splc->a("aPos"));
+		glVertexAttribPointer(splc->a("aPos"), 4, GL_FLOAT, false, 0, myCubeVertices);
+		glEnableVertexAttribArray(splc->a("texCoord0"));
+		glVertexAttribPointer(splc->a("texCoord0"), 2, GL_FLOAT, false, 0, myCubeTexCoords);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, myCubeIndices);
+		Mc = glm::translate(Mc, lightCubePos[i] * (-1.0f));
+	}
+	
+	glDisableVertexAttribArray(splc->u("view")); //Disable sending data to the attribute vertex
+	glDisableVertexAttribArray(splc->u("projection")); //Disable sending data to the attribute texCoord0
+	glDisableVertexAttribArray(splc->u("model")); //Disable sending data to the attribute normal
+	glDisableVertexAttribArray(splc->a("aPos"));
+
 	glfwSwapBuffers(window); //Copy back buffer to front buffer
 }
 
@@ -498,7 +711,7 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
-	window = glfwCreateWindow(500, 500, "OpenGL", NULL, NULL);  //Create a window 500pxx500px titled "OpenGL" and an OpenGL context associated with it.
+	window = glfwCreateWindow(500, 500, "Clock", NULL, NULL);  //Create a window 500pxx500px titled "OpenGL" and an OpenGL context associated with it.
 
 	if (!window) //If no window is opened then close the program
 	{

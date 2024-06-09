@@ -22,5 +22,5 @@ void main(void) {
 	//Lighting model computation
 	for(int i=0; i<4; i++)
 		nl[i] = clamp(dot(mn, ml[i]), 0, 1);
-	pixelColor = vec4(kd.rgb * nl[0] + kd.rgb * nl[1] + kd.rgb * nl[2] + kd.rgb * nl[3], kd.a);
+	pixelColor = vec4(kd.rgb * nl[0] + kd.rgb * nl[1] + kd.rgb * nl[2] + kd.rgb * nl[3] + kd.rgb*0.1, kd.a);
 }
