@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <stdio.h>
 #include <vector>
+#include "cube.h"
 #include "constants.h"
 #include "lodepng.h"
 #include "shaderprogram.h"
@@ -57,14 +58,11 @@ struct Mesh {
 	Texture* tex;
 };
 
-/*
-lp[0]= vec4(0, 10, -6, 1); //light position, world space
-lp[1]= vec4(0, 10, 16, 1);
-lp[2]= vec4(6, 30, 0, 1);
-lp[3]= vec4(-6, 30, 0, 1);
-*/
 
-glm::vec3 lightCubePos[4] = { glm::vec3(0.0f, 10.0f, -6.0f), glm::vec3(0.0f, 10.0f, 16.0f), glm::vec3(6.0f, 30.0f, 0.0f), glm::vec3(-6.0f, 30.0f, 0.0f) };
+glm::vec3 lightCubePos[4] = { glm::vec3(0.0f, 10.0f, -6.0f),
+glm::vec3(0.0f, 10.0f, 16.0f),
+glm::vec3(6.0f, 30.0f, 0.0f),
+glm::vec3(-6.0f, 30.0f, 0.0f) }; //locations of light sources in world space
 
 float aspectRatio;	// width to height ratio of window
 
@@ -86,11 +84,11 @@ bool ifCaseVisible;	// flag describing if case should be visible
 ShaderProgram* sp;	// pointer to the shader program
 ShaderProgram* splc;
 
-Texture planks;
+Texture planks; // textures for cubical models drawn alongside the clock
 Texture lamp;
 
-std::vector<Mesh> meshVec;					// vector of all meshes
-std::vector<Texture> texVec;				// vector of all textures
+std::vector<Mesh> meshVec;					// vector of all meshes of the clock
+std::vector<Texture> texVec;				// vector of all textures of the clock
 std::vector<glm::vec3> rotationCenters;		// vector of rotation centers of objects
 std::vector<double> gearRatio(29, 0.0);		// vector of gear ratios
 
@@ -210,19 +208,20 @@ float calculateGearAngle(double oldTime, double time) {
 
 	oldTime = oldTime - floor(oldTime);
 	time = time - floor(time);
-
+	//check the value of oldTime fraction
 	int oldCase;
 	if (oldTime < 0.16) oldCase = 0;
 	else if (oldTime < 0.3) oldCase = 1;
 	else if (oldTime < 0.73) oldCase = 2;
 	else oldCase = 3;
-
+	//check the value of time fraction
 	int newCase;
 	if (time < 0.16) newCase = 0;
 	else if (time < 0.3) newCase = 4;
 	else if (time < 0.73) newCase = 8;
 	else newCase = 12;
-
+	//depending on the intervals the fraction parts of oldTime and time are,
+	//set angle to the appropriate multiplication of time and oldTime
 	switch (oldCase + newCase) {
 		case 0: 
 			angle += (time - oldTime) * 2.5;
@@ -280,7 +279,9 @@ float calculateGearAngle(double oldTime, double time) {
 
 	return angle;
 }
+//check for the lowest and highest positions in x-axis, y-axis and z-axis and return a point in the middle
 glm::vec3 calculateCenter(int meshIndex) {
+	
 	if (rotationCenters[meshIndex] == glm::vec3(0, 0, 0)) {
 		float minX, maxX, minY, maxY, minZ, maxZ;
 		minX = meshVec[meshIndex].vertex.position[0].x;
@@ -303,6 +304,7 @@ glm::vec3 calculateCenter(int meshIndex) {
 	}
 	return rotationCenters[meshIndex];
 }
+//translate center of rotation to the origin, rotate and then translate back
 glm::mat4 rotateObject(glm::mat4 M, float val, int meshIndex)
 {
 	M = glm::translate(M, rotationCenters[meshIndex]);
@@ -310,6 +312,7 @@ glm::mat4 rotateObject(glm::mat4 M, float val, int meshIndex)
 	M = glm::translate(M, rotationCenters[meshIndex]*(-1.0f));
 	return M;
 }
+//translated center of rotation to the origin, scale and then translate back
 glm::mat4 scaleObject(glm::mat4 M, glm::vec3 val, int meshIndex)
 {
 	M = glm::translate(M, rotationCenters[meshIndex]);
@@ -322,6 +325,7 @@ glm::mat4 scaleObject(glm::mat4 M, glm::vec3 val, int meshIndex)
 void error_callback(int error, const char* description) {
 	fputs(description, stderr);
 }
+//camera controls, debug and world manipulation options
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (action == GLFW_PRESS) {
 		if (key == GLFW_KEY_LEFT) speed_x = -PI / 2;
@@ -379,8 +383,8 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	// Calculating centers of rotation for all meshes
 	rotationCenters = std::vector<glm::vec3>(meshNumber, glm::vec3(0, 0, 0));
-	//fill(rotationCenters.begin(), rotationCenters.end(), glm::vec3(0, 0, 0));
-	for (int i = 0; i < meshNumber; i++)	calculateCenter(i);
+	for (int i = 0; i < meshNumber; i++)
+		calculateCenter(i);
 	
 	// Describing centers of rotation of specific meshes which rotate in a specific way
 	rotationCenters[11] = glm::vec3(0.0f, 15.356f, 1.10f); // hour hand
@@ -415,15 +419,6 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	planks.tex = readTexture("planks.png");
 	lamp.tex = readTexture("lamp.png");
-
-	//for (int i = 0; i < meshNumber; i++) {
-	//	printf("%d:\n", i);
-	//	printf("\tpos:%d\n", meshVec[i].vertex.position.size());
-	//	printf("\tnor:%d\n", meshVec[i].vertex.normal.size());
-	//	printf("\ttex:%d\n", meshVec[i].vertex.texCoords.size());
-	//	printf("\tind:%d\n", meshVec[i].indices.size());
-	//	printf("\ttex:%d - %s\n\n", meshVec[i].tex, meshVec[i].TexType);
-	//}
 }
 //Release resources allocated by the program
 void freeOpenGLProgram(GLFWwindow* window) {
@@ -436,153 +431,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
 	delete splc;
 }
 
-float myCubeTexCoords[] = {
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
 
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
-
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
-
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
-
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
-
-		1.0f, 0.0f,	  0.0f, 1.0f,    0.0f, 0.0f,
-		1.0f, 0.0f,   1.0f, 1.0f,    0.0f, 1.0f,
-};
-
-float myCubeNormals[] = {
-	// Wall 1 (Back face)
-	0.0f, 0.0f, -1.0f,  // Normal for all vertices of Wall 1
-	0.0f, 0.0f, -1.0f,
-	0.0f, 0.0f, -1.0f,
-	0.0f, 0.0f, -1.0f,
-	0.0f, 0.0f, -1.0f,
-	0.0f, 0.0f, -1.0f,
-
-	// Wall 2 (Front face)
-	0.0f, 0.0f, 1.0f,  // Normal for all vertices of Wall 2
-	0.0f, 0.0f, 1.0f,
-	0.0f, 0.0f, 1.0f,
-	0.0f, 0.0f, 1.0f,
-	0.0f, 0.0f, 1.0f,
-	0.0f, 0.0f, 1.0f,
-
-	// Wall 3 (Bottom face)
-	0.0f, -1.0f, 0.0f,  // Normal for all vertices of Wall 3
-	0.0f, -1.0f, 0.0f,
-	0.0f, -1.0f, 0.0f,
-	0.0f, -1.0f, 0.0f,
-	0.0f, -1.0f, 0.0f,
-	0.0f, -1.0f, 0.0f,
-
-	// Wall 4 (Top face)
-	0.0f, 1.0f, 0.0f,  // Normal for all vertices of Wall 4
-	0.0f, 1.0f, 0.0f,
-	0.0f, 1.0f, 0.0f,
-	0.0f, 1.0f, 0.0f,
-	0.0f, 1.0f, 0.0f,
-	0.0f, 1.0f, 0.0f,
-
-	// Wall 5 (Left face)
-	-1.0f, 0.0f, 0.0f,  // Normal for all vertices of Wall 5
-	-1.0f, 0.0f, 0.0f,
-	-1.0f, 0.0f, 0.0f,
-	-1.0f, 0.0f, 0.0f,
-	-1.0f, 0.0f, 0.0f,
-	-1.0f, 0.0f, 0.0f,
-
-	// Wall 6 (Right face)
-	1.0f, 0.0f, 0.0f,  // Normal for all vertices of Wall 6
-	1.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 0.0f,
-};
-
-float myCubeVertices[] = {
-	//Wall 1
-	1.0f,-1.0f,-1.0f,1.0f,
-	-1.0f, 1.0f,-1.0f,1.0f,
-	-1.0f,-1.0f,-1.0f,1.0f,
-
-	1.0f,-1.0f,-1.0f,1.0f,
-	1.0f, 1.0f,-1.0f,1.0f,
-	-1.0f, 1.0f,-1.0f,1.0f,
-
-	//Wall 2
-	-1.0f,-1.0f, 1.0f,1.0f,
-	1.0f, 1.0f, 1.0f,1.0f,
-	1.0f,-1.0f, 1.0f,1.0f,
-
-	-1.0f,-1.0f, 1.0f,1.0f,
-	-1.0f, 1.0f, 1.0f,1.0f,
-	1.0f, 1.0f, 1.0f,1.0f,
-
-
-	//Wall 3
-	-1.0f,-1.0f,-1.0f,1.0f,
-	1.0f,-1.0f, 1.0f,1.0f,
-	1.0f,-1.0f,-1.0f,1.0f,
-
-	-1.0f,-1.0f,-1.0f,1.0f,
-	-1.0f,-1.0f, 1.0f,1.0f,
-	1.0f,-1.0f, 1.0f,1.0f,
-
-	//Wall 4
-	-1.0f, 1.0f, 1.0f,1.0f,
-	1.0f, 1.0f,-1.0f,1.0f,
-	1.0f, 1.0f, 1.0f,1.0f,
-
-	-1.0f, 1.0f, 1.0f,1.0f,
-	-1.0f, 1.0f,-1.0f,1.0f,
-	1.0f, 1.0f,-1.0f,1.0f,
-
-	//Wall 5
-	-1.0f,-1.0f,-1.0f,1.0f,
-	-1.0f, 1.0f, 1.0f,1.0f,
-	-1.0f,-1.0f, 1.0f,1.0f,
-
-	-1.0f,-1.0f,-1.0f,1.0f,
-	-1.0f, 1.0f,-1.0f,1.0f,
-	-1.0f, 1.0f, 1.0f,1.0f,
-
-	//Wall 6
-	1.0f,-1.0f, 1.0f,1.0f,
-	1.0f, 1.0f,-1.0f,1.0f,
-	1.0f,-1.0f,-1.0f,1.0f,
-
-	1.0f,-1.0f, 1.0f,1.0f,
-	1.0f, 1.0f, 1.0f,1.0f,
-	1.0f, 1.0f,-1.0f,1.0f,
-
-
-
-
-};
-
-unsigned int myCubeIndices[] = {
-	// Wall 1 (Back face)
-	0, 1, 2, 3, 4, 5,
-	// Wall 2 (Front face)
-	6, 7, 8, 9, 10, 11,
-	// Wall 3 (Bottom face)
-	12, 13, 14, 15, 16, 17,
-	// Wall 4 (Top face)
-	18, 19, 20, 21, 22, 23,
-	// Wall 5 (Left face)
-	24, 25, 26, 27, 28, 29,
-	// Wall 6 (Right face)
-	30, 31, 32, 33, 34, 35
-};
-
-int myCubeVertexCount = 36;
 
 //Drawing procedure
 void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
@@ -603,7 +452,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glUniform1i(sp->u("textureMap0"), 0);	// associate sampler textureMap0 with the 0-th texturing unit
 	glActiveTexture(GL_TEXTURE0);			// activating the 0-th texturing unit
 
-
+	//draw floor
 	glm::mat4 N = glm::mat4(1.0f);
 	N = glm::scale(N, glm::vec3(20.0f, 1.0f, 20.0f));
 	N = glm::translate(N, glm::vec3(0.0f, -0.68f, 0.0f));
@@ -611,15 +460,15 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glBindTexture(GL_TEXTURE_2D, planks.tex);
 
 	glEnableVertexAttribArray(sp->a("vertex"));
-	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, myCubeVertices);
+	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, cubeVertices);
 
 	glEnableVertexAttribArray(sp->a("normal"));
-	glVertexAttribPointer(sp->a("normal"), 3, GL_FLOAT, false, 0, myCubeNormals);
+	glVertexAttribPointer(sp->a("normal"), 3, GL_FLOAT, false, 0, cubeNormals);
 
 	glEnableVertexAttribArray(sp->a("texCoord0"));
-	glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, myCubeTexCoords);
+	glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, cubeTexCoords);
 
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, myCubeIndices);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, cubeIndices);
 
 	for (int x = 0; x < meshNumber; x++)
 	{
@@ -672,6 +521,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glDisableVertexAttribArray(sp->a("texCoord0")); //Disable sending data to the attribute texCoord0
 	glDisableVertexAttribArray(sp->a("normal")); //Disable sending data to the attribute normal
 
+	//draw lamps using additional shader
 	splc->use();
 	glUniformMatrix4fv(splc->u("view"), 1, false, glm::value_ptr(V));
 	glUniformMatrix4fv(splc->u("projection"), 1, false, glm::value_ptr(P));
@@ -685,16 +535,16 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 		Mc = glm::translate(Mc, lightCubePos[i]);
 		glUniformMatrix4fv(splc->u("model"), 1, false, glm::value_ptr(Mc));
 		glEnableVertexAttribArray(splc->a("aPos"));
-		glVertexAttribPointer(splc->a("aPos"), 4, GL_FLOAT, false, 0, myCubeVertices);
+		glVertexAttribPointer(splc->a("aPos"), 4, GL_FLOAT, false, 0, cubeVertices);
 		glEnableVertexAttribArray(splc->a("texCoord0"));
-		glVertexAttribPointer(splc->a("texCoord0"), 2, GL_FLOAT, false, 0, myCubeTexCoords);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, myCubeIndices);
+		glVertexAttribPointer(splc->a("texCoord0"), 2, GL_FLOAT, false, 0, cubeTexCoords);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, cubeIndices);
 		Mc = glm::translate(Mc, lightCubePos[i] * (-1.0f));
 	}
 	
-	glDisableVertexAttribArray(splc->u("view")); //Disable sending data to the attribute vertex
-	glDisableVertexAttribArray(splc->u("projection")); //Disable sending data to the attribute texCoord0
-	glDisableVertexAttribArray(splc->u("model")); //Disable sending data to the attribute normal
+	glDisableVertexAttribArray(splc->u("view"));
+	glDisableVertexAttribArray(splc->u("projection"));
+	glDisableVertexAttribArray(splc->u("model"));
 	glDisableVertexAttribArray(splc->a("aPos"));
 
 	glfwSwapBuffers(window); //Copy back buffer to front buffer

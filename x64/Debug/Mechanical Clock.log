@@ -1,51 +1,51 @@
 ﻿  main_file.cpp
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(176,21): warning C4018: "<": niezgodność typu ze znakiem/bez znaku
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(209,14): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(228,30): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(231,30): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(234,30): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(237,30): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(241,36): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(244,40): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(247,34): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(250,41): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(254,63): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(257,59): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(260,62): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(263,61): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(267,82): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(270,88): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(273,84): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(276,89): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(378,27): warning C4267: "=": konwersja z "size_t" do "int", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(652,53): warning C4244: "argument": konwersja z "genType" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(174,21): warning C4018: "<": niezgodność typu ze znakiem/bez znaku
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(207,14): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(227,30): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(230,30): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(233,30): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(236,30): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(240,36): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(243,40): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(246,34): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(249,41): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(253,63): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(256,59): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(259,62): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(262,61): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(266,82): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(269,88): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(272,84): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(275,89): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(382,27): warning C4267: "=": konwersja z "size_t" do "int", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(501,53): warning C4244: "argument": konwersja z "genType" do "float", możliwa utrata danych
           with
           [
               genType=double
           ]
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(653,55): warning C4244: "argument": konwersja z "genType" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(502,55): warning C4244: "argument": konwersja z "genType" do "float", możliwa utrata danych
           with
           [
               genType=double
           ]
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(654,55): warning C4244: "argument": konwersja z "genType" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(503,55): warning C4244: "argument": konwersja z "genType" do "float", możliwa utrata danych
           with
           [
               genType=double
           ]
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(655,55): warning C4244: "argument": konwersja z "genType" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(504,55): warning C4244: "argument": konwersja z "genType" do "float", możliwa utrata danych
           with
           [
               genType=double
           ]
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(656,43): warning C4244: "argument": konwersja z "genType" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(505,43): warning C4244: "argument": konwersja z "genType" do "float", możliwa utrata danych
           with
           [
               genType=double
           ]
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(668,55): warning C4267: "argument": konwersja z "size_t" do "GLsizei", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(758,22): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(759,22): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(761,32): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
-C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(762,32): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(517,55): warning C4267: "argument": konwersja z "size_t" do "GLsizei", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(608,22): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(609,22): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(611,32): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\main_file.cpp(612,32): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
   Mechanical Clock.vcxproj -> C:\Users\jakub\Documents\GitHub\CG-V-3D-Mechanical-Clock\x64\Debug\Mechanical Clock.exe
